@@ -1,0 +1,111 @@
+/* css/style.css
+   Stili principali - mobile-first, palette pastello, accessibilità.
+   - Buttons and layout for one-hand use
+*/
+
+/* Palette:
+   Soft Blue: #A9D6E5
+   Mint: #C6F6D5
+   Peach: #FFD6C5
+   Mauve: #DCC6E0
+*/
+
+:root{
+  --bg: #ffffff;
+  --soft-blue: #A9D6E5;
+  --mint: #C6F6D5;
+  --peach: #FFD6C5;
+  --mauve: #DCC6E0;
+  --muted: #6b6b6b;
+  --primary: var(--soft-blue);
+  --card-radius: 12px;
+  --gap: 12px;
+  --max-width: 720px;
+  --font-sans: system-ui, -apple-system, "Helvetica Neue", Arial;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:var(--font-sans);
+  background:linear-gradient(180deg, #FBFBFE 0%, #FFF 100%);
+  color:#111;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  display:flex;
+  justify-content:center;
+  padding:16px;
+}
+main#app{
+  width:100%;
+  max-width:var(--max-width);
+}
+
+/* Topbar */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:var(--gap);
+}
+.topbar h1{margin:0;font-size:1.4rem;color:var(--primary)}
+.topbar button{background:none;border:none;font-size:1.2rem;}
+
+/* Cards */
+.card{
+  background:rgba(255,255,255,0.9);
+  border-radius:var(--card-radius);
+  padding:12px;
+  box-shadow:0 6px 18px rgba(20,20,40,0.06);
+  margin-bottom:var(--gap);
+}
+
+/* Forms */
+.field{margin-bottom:8px}
+.field label{display:block;font-size:0.85rem;color:var(--muted);margin-bottom:6px}
+.field input{width:100%;padding:10px;border-radius:8px;border:1px solid #e8e8ee;font-size:1rem}
+
+.field-row{display:flex;gap:8px}
+.field-row .field{flex:1}
+
+/* Buttons */
+.btn{
+  padding:10px 14px;
+  border-radius:10px;
+  border:1px solid transparent;
+  background:transparent;
+  font-size:1rem;
+}
+.btn.primary{background:var(--primary);color:#fff}
+.btn.danger{background:#ffdddd;color:#900}
+
+/* Lists */
+#cart-list{list-style:none;padding:0;margin:0}
+#cart-list li{display:flex;justify-content:space-between;padding:8px 4px;border-bottom:1px dashed #f0f0f3}
+.summary{margin-top:8px;color:var(--muted)}
+
+/* Screens */
+.screen{display:none}
+.screen.active{display:block}
+
+/* Scanner */
+.scanner{position:relative;height:52vh;border-radius:12px;overflow:hidden;background:#000}
+.scanner video{width:100%;height:100%;object-fit:cover}
+.scan-rect{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:68%;
+  height:30%;
+  transform:translate(-50%,-50%);
+  border:3px dashed rgba(255,255,255,0.7);
+  border-radius:8px;
+  pointer-events:none;
+}
+
+/* Responsive */
+@media(min-width:600px){
+  body{padding:24px}
+  .topbar h1{font-size:1.6rem}
+}
