@@ -1,0 +1,144 @@
+<!--
+  index.html
+  Entry point for SplitTicket PWA.
+  - Mobile-first layout
+  - Loads vanilla JS modules
+  - Do not change the module paths unless you updated the structure
+-->
+
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>SplitTicket — Dividi buoni pasto</title>
+
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#A9D6E5" />
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- ZXing barcode reader via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@zxing/browser@0.0.11/dist/index.min.js"></script>
+
+</head>
+<body>
+  <main id="app" aria-live="polite">
+    <!-- Header -->
+    <header class="topbar">
+      <h1>SplitTicket</h1>
+      <button id="btn-settings" aria-label="Impostazioni">⚙️</button>
+    </header>
+
+    <!-- Home / Cart -->
+    <section id="screen-home" class="screen active" role="main" aria-labelledby="home-title">
+      <h2 id="home-title">Carrello</h2>
+
+      <form id="product-form" class="card" aria-label="Aggiungi prodotto">
+        <div class="field">
+          <label for="name">Nome</label>
+          <input id="name" name="name" type="text" placeholder="Pane" required />
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="price">Prezzo (€)</label>
+            <input id="price" name="price" type="number" step="0.01" min="0" placeholder="2.50" required />
+          </div>
+          <div class="field">
+            <label for="qty">Quantità</label>
+            <input id="qty" name="qty" type="number" min="1" value="1" required />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="barcode">Codice a barre (opz.)</label>
+            <input id="barcode" name="barcode" type="text" placeholder="0123456789012" />
+          </div>
+          <button type="button" id="btn-scan" class="btn">Scansiona</button>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn primary">Aggiungi</button>
+          <button type="button" id="btn-clear-cart" class="btn danger">Svuota</button>
+        </div>
+      </form>
+
+      <div id="cart" class="card">
+        <h3>Prodotti</h3>
+        <ul id="cart-list" aria-live="polite"></ul>
+        <div id="cart-summary" class="summary"></div>
+        <div class="actions">
+          <button id="btn-optimize" class="btn primary">Ottimizza buoni</button>
+          <button id="btn-history" class="btn">Storico / Export</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Scanner Screen -->
+    <section id="screen-scan" class="screen" aria-hidden="true">
+      <header class="subheader">
+        <button id="btn-scan-back" class="btn">← Indietro</button>
+        <h2>Scanner Barcode</h2>
+      </header>
+      <div id="scanner-container" class="scanner">
+        <video id="video" playsinline></video>
+        <div class="scan-rect" aria-hidden="true"></div>
+      </div>
+      <div class="actions">
+        <button id="btn-scan-stop" class="btn danger">Stop</button>
+      </div>
+    </section>
+
+    <!-- Result Screen -->
+    <section id="screen-result" class="screen" aria-hidden="true">
+      <header class="subheader">
+        <button id="btn-result-back" class="btn">← Torna</button>
+        <h2>Risultato ottimizzazione</h2>
+      </header>
+      <div id="result-card" class="card">
+        <!-- dynamic content -->
+      </div>
+      <div class="actions">
+        <button id="btn-save-result" class="btn primary">Salva nello storico</button>
+        <button id="btn-export-json" class="btn">Esporta JSON</button>
+        <button id="btn-export-csv" class="btn">Esporta CSV</button>
+      </div>
+    </section>
+
+    <!-- History Screen -->
+    <section id="screen-history" class="screen" aria-hidden="true">
+      <header class="subheader">
+        <button id="btn-history-back" class="btn">← Torna</button>
+        <h2>Storico</h2>
+      </header>
+      <div id="history-list" class="card"></div>
+      <div class="actions">
+        <button id="btn-clear-history" class="btn danger">Cancella storico</button>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section id="screen-settings" class="screen" aria-hidden="true">
+      <header class="subheader">
+        <button id="btn-settings-back" class="btn">← Torna</button>
+        <h2>Impostazioni</h2>
+      </header>
+      <div class="card">
+        <label>Valore buono (tu)</label>
+        <input id="setting-voucher-user" type="number" step="0.01" value="7.5" />
+        <label>Valore buono (lei)</label>
+        <input id="setting-voucher-partner" type="number" step="0.01" value="7.0" />
+        <label>Numero buoni (tu)</label>
+        <input id="setting-voucher-count-user" type="number" min="0" value="1" />
+        <label>Numero buoni (lei)</label>
+        <input id="setting-voucher-count-partner" type="number" min="0" value="1" />
+        <div class="actions">
+          <button id="btn-save-settings" class="btn primary">Salva impostazioni</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>
