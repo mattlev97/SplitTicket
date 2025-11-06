@@ -1,6 +1,6 @@
 <!-- /index.html
-Purpose: Main entry for the PWA. Mobile-first single page app.
-Replace: None required; uses config/params.js defaults.
+Scopo: Entry point PWA. Modificato per usare import relativi da src/app.js.
+Nota: non è richiesto altro cambiamento qui se non lo script src relativo.
 -->
 <!doctype html>
 <html lang="it">
@@ -112,6 +112,7 @@ Replace: None required; uses config/params.js defaults.
     </nav>
   </main>
 
-  <script type="module" src="/src/app.js"></script>
+  <!-- Carica il modulo principale con path relativo per permettere corretta risoluzione degli import -->
+  <script type="module" src="./src/app.js"></script>
 </body>
 </html>
