@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#A8D5E2">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="SplitTicket">
+    <meta name="description" content="Dividi la spesa ottimizzando l'uso dei buoni pasto">
+    
+    <title>SplitTicket - Gestione Spesa</title>
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="./manifest.webmanifest">
+    
+    <!-- Icons -->
+    <link rel="apple-touch-icon" href="./icons/icon-152x152.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192x192.png">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="./css/main.css">
+    <link rel="stylesheet" href="./css/scanner.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading" class="loading-screen">
+        <div class="spinner"></div>
+        <p>Caricamento...</p>
+    </div>
+
+    <!-- Main Container -->
+    <div id="app" class="app-container" style="display: none;">
+        
+        <!-- Navigation -->
+        <nav class="bottom-nav" role="navigation" aria-label="Navigazione principale">
+            <button class="nav-btn active" data-view="cart" aria-label="Carrello">
+                <span class="nav-icon">🛒</span>
+                <span class="nav-label">Carrello</span>
+            </button>
+            <button class="nav-btn" data-view="scanner" aria-label="Scanner">
+                <span class="nav-icon">📷</span>
+                <span class="nav-label">Scanner</span>
+            </button>
+            <button class="nav-btn" data-view="result" aria-label="Risultato">
+                <span class="nav-icon">💰</span>
+                <span class="nav-label">Risultato</span>
+            </button>
+            <button class="nav-btn" data-view="history" aria-label="Storico">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">Storico</span>
+            </button>
+            <button class="nav-btn" data-view="settings" aria-label="Impostazioni">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-label">Opzioni</span>
+            </button>
+        </nav>
+
+        <!-- Views Container -->
+        <main class="views-container">
+            
+            <!-- Cart View -->
+            <section id="cart-view" class="view active" role="main" aria-labelledby="cart-title">
+                <header class="view-header">
+                    <h1 id="cart-title">Carrello</h1>
+                    <button id="clear-cart-btn" class="header-btn" aria-label="Svuota carrello">🗑️</button>
+                </header>
+                
+                <div class="cart-content">
+                    <div id="cart-items" class="cart-items">
+                        <!-- Items will be inserted here -->
+                    </div>
+                    
+                    <div id="empty-cart" class="empty-state">
+                        <p class="empty-icon">🛒</p>
+                        <p>Il carrello è vuoto</p>
+                        <p class="empty-hint">Aggiungi prodotti con il pulsante qui sotto o usa lo scanner</p>
+                    </div>
+                </div>
+                
+                <div class="cart-summary">
+                    <div class="summary-row">
+                        <span>Totale:</span>
+                        <span id="cart-total" class="summary-value">€0.00</span>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button id="add-manual-btn" class="btn btn-secondary">
+                        ➕ Aggiungi Manualmente
+                    </button>
+                    <button id="calculate-btn" class="btn btn-primary">
+                        💡 Calcola Divisione
+                    </button>
+                </div>
+            </section>
+
+            <!-- Scanner View -->
+            <section id="scanner-view" class="view" role="main" aria-labelledby="scanner-title">
+                <header class="view-header">
+                    <h1 id="scanner-title">Scanner Codice a Barre</h1>
+                    <button id="close-scanner-btn" class="header-btn" aria-label="Chiudi scanner">✕</button>
+                </header>
+                
+                <div class="scanner-container">
+                    <div id="scanner-viewport" class="scanner-viewport">
+                        <video id="scanner-video" playsinline></video>
+                        <div class="scanner-overlay">
+                            <div class="scanner-frame"></div>
+                        </div>
+                    </div>
+                    
+                    <div id="scanner-status" class="scanner-status">
+                        Inquadra il codice a barre
+                    </div>
+                    
+                    <button id="toggle-flash-btn" class="btn btn-secondary" style="display: none;">
+                        🔦 Flash
+                    </button>
+                </div>
+                
+                <div class="scanner-fallback">
+                    <p>Problemi con lo scanner?</p>
+                    <button id="manual-entry-btn" class="btn btn-secondary">
+                        ⌨️ Inserimento Manuale
+                    </button>
+                </div>
+            </section>
+
+            <!-- Result View -->
+            <section id="result-view" class="view" role="main" aria-labelledby="result-title">
+                <header class="view-header">
+                    <h1 id="result-title">Divisione Ottimale</h1>
+                    <button id="save-split-btn" class="header-btn" aria-label="Salva divisione">💾</button>
+                </header>
+                
+                <div id="result-content" class="result-content">
+                    <div class="empty-state">
+                        <p class="empty-icon">💰</p>
+                        <p>Nessuna divisione calcolata</p>
+                        <p class="empty-hint">Aggiungi prodotti al carrello e calcola la divisione</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- History View -->
+            <section id="history-view" class="view" role="main" aria-labelledby="history-title">
+                <header class="view-header">
+                    <h1 id="history-title">Storico Spese</h1>
+                    <button id="export-history-btn" class="header-btn" aria-label="Esporta storico">📥</button>
+                </header>
+                
+                <div id="history-content" class="history-content">
+                    <div id="history-items" class="history-items">
+                        <!-- History items will be inserted here -->
+                    </div>
+                    
+                    <div id="empty-history" class="empty-state">
+                        <p class="empty-icon">📊</p>
+                        <p>Nessuna spesa salvata</p>
+                        <p class="empty-hint">Le divisioni salvate appariranno qui</p>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button id="clear-history-btn" class="btn btn-danger">
+                        🗑️ Cancella Storico
+                    </button>
+                </div>
+            </section>
+
+            <!-- Settings View -->
+            <section id="settings-view" class="view" role="main" aria-labelledby="settings-title">
+                <header class="view-header">
+                    <h1 id="settings-title">Impostazioni</h1>
+                </header>
+                
+                <div class="settings-content">
+                    <div class="settings-section">
+                        <h2>Buoni Pasto</h2>
+                        
+                        <div class="setting-item">
+                            <label for="user-voucher">Tuo buono (€)</label>
+                            <input type="number" id="user-voucher" step="0.01" min="0" value="7.50">
+                        </div>
+                        
+                        <div class="setting-item">
+                            <label for="partner-voucher">Buono partner (€)</label>
+                            <input type="number" id="partner-voucher" step="0.01" min="0" value="7.00">
+                        </div>
+                        
+                        <div class="setting-item">
+                            <label for="user-name">Tuo nome</label>
+                            <input type="text" id="user-name" value="Tu">
+                        </div>
+                        
+                        <div class="setting-item">
+                            <label for="partner-name">Nome partner</label>
+                            <input type="text" id="partner-name" value="Lei">
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h2>App</h2>
+                        
+                        <div class="setting-item">
+                            <label>Versione</label>
+                            <span class="setting-value">1.0.0</span>
+                        </div>
+                        
+                        <button id="install-pwa-btn" class="btn btn-primary" style="display: none;">
+                            📲 Installa App
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Modal for Manual Entry -->
+    <div id="modal-overlay" class="modal-overlay" style="display: none;">
+        <div class="modal" role="dialog" aria-labelledby="modal-title" aria-modal="true">
+            <header class="modal-header">
+                <h2 id="modal-title">Aggiungi Prodotto</h2>
+                <button id="modal-close" class="modal-close" aria-label="Chiudi">&times;</button>
+            </header>
+            
+            <form id="product-form" class="modal-body">
+                <div class="form-group">
+                    <label for="product-name">Nome prodotto *</label>
+                    <input type="text" id="product-name" required placeholder="Es. Latte intero">
+                </div>
+                
+                <div class="form-group">
+                    <label for="product-price">Prezzo (€) *</label>
+                    <input type="number" id="product-price" step="0.01" min="0.01" required placeholder="Es. 1.50">
+                </div>
+                
+                <div class="form-group">
+                    <label for="product-quantity">Quantità</label>
+                    <input type="number" id="product-quantity" min="1" value="1">
+                </div>
+                
+                <div class="form-group">
+                    <label for="product-barcode">Codice a barre (opzionale)</label>
+                    <input type="text" id="product-barcode" placeholder="Es. 8001234567890">
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" id="modal-cancel" class="btn btn-secondary">Annulla</button>
+                    <button type="submit" class="btn btn-primary">Aggiungi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Scripts -->
+    <script src="./src/config.js"></script>
+    <script src="./src/storage.js"></script>
+    <script src="./src/optimizer.js"></script>
+    <script src="./src/scanner.js"></script>
+    <script src="./src/ui.js"></script>
+    <script src="./src/app.js"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(reg => console.log('Service Worker registrato:', reg.scope))
+                    .catch(err => console.log('Errore Service Worker:', err));
+            });
+        }
+    </script>
+</body>
+</html>
