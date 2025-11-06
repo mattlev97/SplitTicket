@@ -7,7 +7,7 @@ Palette principale:
 - danger:  #FF6B6B (rosso tenue)
 */
 
-/* Base reset */
+/* Root variables */
 :root{
   --primary: #A7C7E7;
   --accent: #F6C6EA;
@@ -29,7 +29,13 @@ body{
   -webkit-font-smoothing:antialiased;
   -webkit-text-size-adjust:100%;
 }
-.container{max-width:640px;margin:0 auto;padding:16px;padding-bottom:80px}
+.container{max-width:640px;margin:0 auto;padding:16px;padding-bottom:100px}
+
+/* --- View visibility: show only active view --- */
+.view { display: none; }           /* tutte le view nascoste */
+.view.active { display: block; }   /* solo la view attiva visibile */
+/* Mantieni il layout a schermo intero per le view */
+.view.card, .view .card { box-sizing: border-box; }
 
 /* Header */
 .app-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
@@ -63,6 +69,9 @@ button.danger{background:var(--danger);color:#fff}
 #video{width:100%;height:100%;object-fit:cover;border-radius:10px}
 #scan-overlay{position:absolute;pointer-events:none;border:2px dashed rgba(255,255,255,0.6);width:70%;height:45%;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,0.2)}
 #scan-feedback{position:absolute;bottom:12px;background:rgba(0,0,0,0.5);color:#fff;padding:6px 10px;border-radius:8px}
+
+/* Debug overlay */
+#app-debug{font-family:monospace;font-size:12px}
 
 /* Responsive */
 @media (min-width:480px){
