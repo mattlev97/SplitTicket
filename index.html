@@ -1,13 +1,127 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dyad-generated-app</title>
-  </head>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>SplitTicket</title>
+    <meta name="description" content="App per dividere la spesa ottimizzando i buoni pasto.">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#A2D2FF">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+</head>
+<body>
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+    <div id="app-container">
+        <!-- Schermata Principale (Carrello) -->
+        <div id="home-screen" class="screen active">
+            <header>
+                <h1>SplitTicket</h1>
+                <button id="settings-btn" class="icon-btn">⚙️</button>
+            </header>
+            <main>
+                <div id="cart-items">
+                    <!-- Gli articoli del carrello verranno inseriti qui da JS -->
+                </div>
+                <div id="cart-summary">
+                    <p>Totale: <span id="total-amount">0.00</span>€</p>
+                </div>
+            </main>
+            <footer>
+                <div class="add-item-form">
+                    <input type="text" id="item-name" placeholder="Nome prodotto">
+                    <input type="number" id="item-price" placeholder="Prezzo" step="0.01" min="0">
+                    <button id="add-item-btn">Aggiungi</button>
+                    <button id="scan-barcode-btn" class="icon-btn">📷</button>
+                </div>
+                <button id="optimize-btn" class="primary-btn">Ottimizza Divisione</button>
+            </footer>
+        </div>
+
+        <!-- Schermata Scanner -->
+        <div id="scanner-screen" class="screen">
+            <header>
+                <button id="close-scanner-btn" class="icon-btn">❌</button>
+                <h2>Inquadra un codice a barre</h2>
+            </header>
+            <main>
+                <div id="scanner-container">
+                    <video id="scanner-video"></video>
+                    <div class="scanner-overlay"></div>
+                </div>
+                <p id="scanner-feedback">In attesa di un codice...</p>
+            </main>
+        </div>
+
+        <!-- Schermata Risultati -->
+        <div id="result-screen" class="screen">
+            <header>
+                <button id="close-result-btn" class="icon-btn">⬅️</button>
+                <h2>Divisione Ottimale</h2>
+            </header>
+            <main>
+                <div class="result-section">
+                    <h3>Assegnati a Te (Buono: <span id="user-voucher-value"></span>€)</h3>
+                    <ul id="user-items"></ul>
+                    <p><strong>Totale coperto: <span id="user-total-covered"></span>€</strong></p>
+                </div>
+                <div class="result-section">
+                    <h3>Assegnati al Partner (Buono: <span id="partner-voucher-value"></span>€)</h3>
+                    <ul id="partner-items"></ul>
+                    <p><strong>Totale coperto: <span id="partner-total-covered"></span>€</strong></p>
+                </div>
+                <div class="result-section">
+                    <h3>Resto da dividere</h3>
+                    <ul id="remaining-items"></ul>
+                    <p><strong>Totale resto: <span id="remaining-total"></span>€</strong></p>
+                    <p><strong>A testa: <span id="remaining-per-person"></span>€</strong></p>
+                </div>
+            </main>
+            <footer>
+                <button id="save-history-btn" class="primary-btn">Salva nello Storico</button>
+            </footer>
+        </div>
+
+        <!-- Schermata Storico -->
+        <div id="history-screen" class="screen">
+            <header>
+                <button id="close-history-btn" class="icon-btn">⬅️</button>
+                <h2>Storico Spese</h2>
+            </header>
+            <main id="history-list">
+                <!-- Lo storico verrà caricato qui -->
+            </main>
+            <footer>
+                <button id="export-csv-btn">Esporta CSV</button>
+                <button id="export-json-btn">Esporta JSON</button>
+                <button id="clear-history-btn" class="danger-btn">Svuota Storico</button>
+            </footer>
+        </div>
+        
+        <!-- Schermata Impostazioni (semplificata) -->
+        <div id="settings-screen" class="screen">
+             <header>
+                <button id="close-settings-btn" class="icon-btn">⬅️</button>
+                <h2>Impostazioni</h2>
+            </header>
+            <main>
+                <p>SplitTicket è una PWA che funziona offline.</p>
+                <button id="install-pwa-btn" style="display: none;">Installa App</button>
+                <p>Per installare su iPhone: tocca l'icona di condivisione in Safari e poi "Aggiungi a schermata Home".</p>
+                <p><a href="#" id="history-link">Visualizza Storico</a></p>
+            </main>
+        </div>
+
+    </div>
+
+    <!-- Libreria per lo scanner di codici a barre via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/umd/zxing-browser.min.js"></script>
+    
+    <!-- Script dell'applicazione -->
+    <script src="js/config.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/optimizer.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+</body>
 </html>
