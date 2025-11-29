@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
             elements.scannerVideo.srcObject = stream;
             ui.showScreen(screens.scanner, screens);
-            elements.scannerFeedback.textContent = 'Puntando la fotocamera...';
+            elements.scannerFeedback.textContent = 'Puntando la fotocameta...';
 
             barcodeReader.decodeFromStream(elements.scannerVideo, stream, (result, err) => {
                 if (result) {
@@ -168,15 +168,12 @@ document.addEventListener('DOMContentLoaded', () => {
             Array(item.quantity).fill({ name: item.name, price: item.price })
         );
 
-        // Calcola la capacità totale dei buoni per ogni persona
-        const totalUserVoucher = config.VOUCHER_VALUE_USER * config.VOUCHER_COUNT_USER;
-        const totalPartnerVoucher = config.VOUCHER_VALUE_PARTNER * config.VOUCHER_COUNT_PARTNER;
-
         const result = optimizer.optimizeSplit(
             itemsToOptimize,
-            totalUserVoucher,
-            totalPartnerVoucher,
-            config.OPTIMIZER_EXACT_THRESHOLD
+            config.VOUCHER_VALUE_USER,
+            config.VOUCHER_COUNT_USER,
+            config.VOUCHER_VALUE_PARTNER,
+            config.VOUCHER_COUNT_PARTNER
         );
         
         currentOptimizationResult = result;
@@ -232,10 +229,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const rows = history.map(e => 
                     [
                         new Date(e.date).toLocaleString('it-IT'),
-                        e.total.toFixed(2),
-                        e.user.total.toFixed(2),
-                        e.partner.total.toFixed(2),
-                        e.remaining.total.toFixed(2)
+                        e.grandTotal.toFixed(2),
+                        e.user.cashToPay.toFixed(2),
+                        e.partner.cashToPay.toFixed(2),
+                        (e.user.cashToPay + e.partner.cashToPay).toFixed(2)
                     ].join(',')
                 ).join('\n');
                 dataStr = headers + rows;
