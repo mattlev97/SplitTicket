@@ -5,16 +5,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Stato dell'applicazione
     let cart = [];
     let currentOptimizationResult = null;
+    let appConfig = configManager.loadConfig(); // Carica la configurazione all'avvio
     const barcodeReader = new ZXingBrowser.BrowserMultiFormatReader();
     let deferredInstallPrompt = null;
-
-    // Categorie Prodotti
-    const categories = [
-        "Generico", "Frutta e Verdura", "Carne e Pesce", "Pane e Pasticceria",
-        "Latticini e Uova", "Surgelati", "Dispensa", "Bevande", "Alcolici",
-        "Igiene e Casa", "Bambini", "Animali"
-    ];
-    const nonVoucherCategories = ["Alcolici", "Igiene e Casa"];
 
     // Elementi del DOM
     const screens = {
@@ -26,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const elements = {
+        // Schermata Home
         itemCategorySelect: document.getElementById('item-category'),
         itemNameInput: document.getElementById('item-name'),
         itemPriceInput: document.getElementById('item-price'),
@@ -35,40 +29,64 @@ document.addEventListener('DOMContentLoaded', () => {
         optimizeBtn: document.getElementById('optimize-btn'),
         cartItemsContainer: document.getElementById('cart-items'),
         totalAmountSpan: document.getElementById('total-amount'),
+        settingsBtn: document.getElementById('settings-btn'),
+        
+        // Schermata Scanner
         closeScannerBtn: document.getElementById('close-scanner-btn'),
         scannerVideo: document.getElementById('scanner-video'),
         scannerFeedback: document.getElementById('scanner-feedback'),
+        
+        // Schermata Risultati
         closeResultBtn: document.getElementById('close-result-btn'),
         saveHistoryBtn: document.getElementById('save-history-btn'),
-        settingsBtn: document.getElementById('settings-btn'),
-        closeSettingsBtn: document.getElementById('close-settings-btn'),
-        historyLink: document.getElementById('history-link'),
+        
+        // Schermata Storico
         closeHistoryBtn: document.getElementById('close-history-btn'),
         exportCsvBtn: document.getElementById('export-csv-btn'),
         exportJsonBtn: document.getElementById('export-json-btn'),
         clearHistoryBtn: document.getElementById('clear-history-btn'),
+        
+        // Schermata Impostazioni
+        closeSettingsBtn: document.getElementById('close-settings-btn'),
+        historyLink: document.getElementById('history-link'),
         installPwaBtn: document.getElementById('install-pwa-btn'),
+        saveSettingsBtn: document.getElementById('save-settings-btn'),
+        settingUserVoucherValue: document.getElementById('setting-user-voucher-value'),
+        settingPartnerVoucherValue: document.getElementById('setting-partner-voucher-value'),
+        settingCategories: document.getElementById('setting-categories'),
+        settingNonVoucherCategories: document.getElementById('setting-non-voucher-categories'),
     };
 
     // Inizializzazione
     init();
 
     function init() {
-        populateCategories();
         addEventListeners();
-        db.initDB().then(() => {
-            console.log('Database inizializzato.');
-        });
+        db.initDB().then(() => console.log('Database inizializzato.'));
+        applyConfig();
         updateCartView();
+    }
+    
+    function applyConfig() {
+        populateCategories();
+        populateSettingsForm();
     }
 
     function populateCategories() {
-        categories.forEach(cat => {
+        elements.itemCategorySelect.innerHTML = '';
+        appConfig.CATEGORIES.forEach(cat => {
             const option = document.createElement('option');
             option.value = cat;
             option.textContent = cat;
             elements.itemCategorySelect.appendChild(option);
         });
+    }
+    
+    function populateSettingsForm() {
+        elements.settingUserVoucherValue.value = appConfig.VOUCHER_VALUE_USER;
+        elements.settingPartnerVoucherValue.value = appConfig.VOUCHER_VALUE_PARTNER;
+        elements.settingCategories.value = appConfig.CATEGORIES.join(', ');
+        elements.settingNonVoucherCategories.value = appConfig.NON_VOUCHER_CATEGORIES.join(', ');
     }
 
     // Gestione Eventi
@@ -88,6 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.exportJsonBtn.addEventListener('click', exportHistoryAsJSON);
         elements.installPwaBtn.addEventListener('click', installPWA);
         elements.itemCategorySelect.addEventListener('change', handleCategoryChange);
+        elements.saveSettingsBtn.addEventListener('click', saveSettings);
 
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
@@ -98,10 +117,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleCategoryChange(e) {
         const selectedCategory = e.target.value;
-        if (nonVoucherCategories.includes(selectedCategory)) {
-            elements.itemNonVoucherCheckbox.checked = true;
+        elements.itemNonVoucherCheckbox.checked = appConfig.NON_VOUCHER_CATEGORIES.includes(selectedCategory);
+    }
+    
+    function saveSettings() {
+        const newUserVoucher = parseFloat(elements.settingUserVoucherValue.value);
+        const newPartnerVoucher = parseFloat(elements.settingPartnerVoucherValue.value);
+        
+        if (isNaN(newUserVoucher) || isNaN(newPartnerVoucher) || newUserVoucher < 0 || newPartnerVoucher < 0) {
+            alert("I valori dei buoni non sono validi.");
+            return;
+        }
+
+        const newCategories = elements.settingCategories.value.split(',').map(s => s.trim()).filter(Boolean);
+        const newNonVoucherCategories = elements.settingNonVoucherCategories.value.split(',').map(s => s.trim()).filter(Boolean);
+
+        const newConfig = {
+            ...appConfig,
+            VOUCHER_VALUE_USER: newUserVoucher,
+            VOUCHER_VALUE_PARTNER: newPartnerVoucher,
+            CATEGORIES: newCategories,
+            NON_VOUCHER_CATEGORIES: newNonVoucherCategories
+        };
+
+        if (configManager.saveConfig(newConfig)) {
+            appConfig = newConfig; // Aggiorna la configurazione in memoria
+            applyConfig(); // Riapplica la configurazione all'UI
+            alert("Impostazioni salvate con successo!");
+            ui.showScreen(screens.home, screens);
         } else {
-            elements.itemNonVoucherCheckbox.checked = false;
+            alert("Errore durante il salvataggio delle impostazioni.");
         }
     }
 
@@ -141,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateCartView() {
-        ui.renderCart(cart, elements.cartItemsContainer, config.CURRENCY_SYMBOL, removeItemFromCart);
+        ui.renderCart(cart, elements.cartItemsContainer, appConfig.CURRENCY_SYMBOL, removeItemFromCart);
         const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         elements.totalAmountSpan.textContent = total.toFixed(2);
         elements.optimizeBtn.disabled = cart.length === 0;
@@ -205,10 +250,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const result = optimizer.optimizeSplit(
             voucherItems,
-            config.VOUCHER_VALUE_USER,
-            config.VOUCHER_COUNT_USER,
-            config.VOUCHER_VALUE_PARTNER,
-            config.VOUCHER_COUNT_PARTNER
+            appConfig.VOUCHER_VALUE_USER,
+            appConfig.VOUCHER_COUNT_USER,
+            appConfig.VOUCHER_VALUE_PARTNER,
+            appConfig.VOUCHER_COUNT_PARTNER
         );
 
         const nonVoucherTotal = nonVoucherItems.reduce((sum, item) => sum + item.price, 0);
@@ -222,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
         result.nonVoucherTotal = nonVoucherTotal;
         
         currentOptimizationResult = result;
-        ui.displayResults(result, config);
+        ui.displayResults(result, appConfig);
         ui.showScreen(screens.result, screens);
     }
 
@@ -244,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function showHistory() {
         try {
             const history = await db.getExpenses();
-            ui.renderHistory(history, config.CURRENCY_SYMBOL);
+            ui.renderHistory(history, appConfig.CURRENCY_SYMBOL);
             ui.showScreen(screens.history, screens);
         } catch (error) {
             console.error('Errore nel caricamento dello storico:', error);

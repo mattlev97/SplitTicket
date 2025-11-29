@@ -268,3 +268,25 @@ button {
 #history-list .history-item p {
     margin-bottom: 0.5rem;
 }
+
+/* Impostazioni */
+#settings-form .settings-group {
+    margin-bottom: 1.5rem;
+}
+#settings-form h3 {
+    margin-bottom: 0.5rem;
+}
+#settings-form label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+    color: #555;
+}
+#settings-form input, #settings-form textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+}

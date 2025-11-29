@@ -1,25 +1,53 @@
 // js/config.js
-// File di configurazione centrale per SplitTicket.
-// Modifica questi valori per personalizzare l'app.
+// Gestore di configurazione che utilizza localStorage per la persistenza.
 
-const config = {
-  // INFORMAZIONI SULLA REPOSITORY (per il README e link futuri)
-  GITHUB_USERNAME: "TUO_USERNAME_GITHUB", // Sostituisci con il tuo username GitHub
-  REPO_NAME: "SplitTicket", // Il nome della tua repository
+const CONFIG_KEY = 'splitTicketConfig';
 
-  // VALORI DEI BUONI PASTO (in euro)
-  VOUCHER_VALUE_USER: 7.50, // Valore del tuo buono pasto
-  VOUCHER_VALUE_PARTNER: 7.00, // Valore del buono pasto del partner
+// Valori di default usati al primo avvio o se non ci sono impostazioni salvate.
+const defaultConfig = {
+    VOUCHER_VALUE_USER: 7.50,
+    VOUCHER_VALUE_PARTNER: 7.00,
+    VOUCHER_COUNT_USER: 6,
+    VOUCHER_COUNT_PARTNER: 6,
+    CURRENCY_SYMBOL: "€",
+    CATEGORIES: [
+        "Generico", "Frutta e Verdura", "Carne e Pesce", "Pane e Pasticceria",
+        "Latticini e Uova", "Surgelati", "Dispensa", "Bevande", "Alcolici",
+        "Igiene e Casa", "Bambini", "Animali"
+    ],
+    NON_VOUCHER_CATEGORIES: ["Alcolici", "Igiene e Casa"]
+};
 
-  // NUMERO DI BUONI PASTO
-  VOUCHER_COUNT_USER: 6, // Numero di buoni pasto per te (massimo 6)
-  VOUCHER_COUNT_PARTNER: 6, // Numero di buoni pasto per il partner (massimo 6)
+const configManager = {
+    /**
+     * Carica la configurazione da localStorage. Se non esiste, usa i valori di default.
+     * @returns {Object} La configurazione corrente.
+     */
+    loadConfig() {
+        try {
+            const savedConfig = localStorage.getItem(CONFIG_KEY);
+            if (savedConfig) {
+                // Unisce la configurazione salvata con quella di default
+                // per garantire che eventuali nuove chiavi di default siano presenti.
+                return { ...defaultConfig, ...JSON.parse(savedConfig) };
+            }
+        } catch (error) {
+            console.error("Errore nel caricamento della configurazione, uso i default:", error);
+        }
+        return defaultConfig;
+    },
 
-  // IMPOSTAZIONI ALGORITMO
-  // L'algoritmo di ottimizzazione esatto (backtracking) può essere lento.
-  // Se il numero di articoli supera questa soglia, l'app userà un'euristica più veloce (greedy).
-  OPTIMIZER_EXACT_THRESHOLD: 20,
-
-  // IMPOSTAZIONI UI
-  CURRENCY_SYMBOL: "€", // Simbolo della valuta
+    /**
+     * Salva un oggetto di configurazione in localStorage.
+     * @param {Object} newConfig - Il nuovo oggetto di configurazione da salvare.
+     */
+    saveConfig(newConfig) {
+        try {
+            localStorage.setItem(CONFIG_KEY, JSON.stringify(newConfig));
+            return true;
+        } catch (error) {
+            console.error("Errore nel salvataggio della configurazione:", error);
+            return false;
+        }
+    }
 };
