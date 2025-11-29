@@ -29,8 +29,13 @@
             </main>
             <footer>
                 <div class="add-item-form">
+                    <select id="item-category"></select>
                     <input type="text" id="item-name" placeholder="Nome prodotto">
                     <input type="number" id="item-price" placeholder="Prezzo" step="0.01" min="0">
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="item-non-voucher">
+                        <label for="item-non-voucher">Non pagabile con buoni</label>
+                    </div>
                     <button id="add-item-btn">Aggiungi</button>
                     <button id="scan-barcode-btn" class="icon-btn">📷</button>
                 </div>
@@ -60,6 +65,11 @@
                 <h2>Divisione Ottimale</h2>
             </header>
             <main>
+                <div id="non-voucher-section" class="result-section" style="display: none;">
+                    <h3>Prodotti non pagabili con buoni</h3>
+                    <ul id="non-voucher-items"></ul>
+                    <p><strong>Totale non coperto: <span id="non-voucher-total"></span>€</strong> (diviso 50/50)</p>
+                </div>
                 <div class="result-section">
                     <h3>La Tua Spesa</h3>
                     <p class="voucher-details">Buoni disponibili: <span id="user-voucher-capacity"></span>€</p>

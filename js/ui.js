@@ -30,9 +30,10 @@ const ui = {
         cart.forEach(item => {
             const itemEl = document.createElement('div');
             itemEl.className = 'cart-item';
+            const nonVoucherTag = item.isNonVoucher ? '<span class="non-voucher-tag">Solo Contanti</span>' : '';
             itemEl.innerHTML = `
                 <div class="item-info">
-                    <span>${item.name} (x${item.quantity})</span>
+                    <span>${item.name} (x${item.quantity})</span> ${nonVoucherTag}
                     <br>
                     <small>${(item.price * item.quantity).toFixed(2)}${currencySymbol}</small>
                 </div>
@@ -52,6 +53,16 @@ const ui = {
      */
     displayResults(result, config) {
         const currency = config.CURRENCY_SYMBOL;
+
+        // Sezione prodotti non pagabili con buoni
+        const nonVoucherSection = document.getElementById('non-voucher-section');
+        if (result.nonVoucherItems && result.nonVoucherItems.length > 0) {
+            this.renderResultList(document.getElementById('non-voucher-items'), result.nonVoucherItems, currency);
+            document.getElementById('non-voucher-total').textContent = result.nonVoucherTotal.toFixed(2);
+            nonVoucherSection.style.display = 'block';
+        } else {
+            nonVoucherSection.style.display = 'none';
+        }
 
         // Dettagli spesa utente
         document.getElementById('user-voucher-capacity').textContent = (config.VOUCHER_COUNT_USER * config.VOUCHER_VALUE_USER).toFixed(2);
@@ -110,8 +121,6 @@ const ui = {
         history.forEach(entry => {
             const el = document.createElement('div');
             el.className = 'history-item';
-            // Nota: la struttura dello storico salvato potrebbe essere diversa ora.
-            // Per semplicità, mostriamo i dati principali.
             el.innerHTML = `
                 <p><strong>Data:</strong> ${new Date(entry.date).toLocaleString('it-IT')}</p>
                 <p><strong>Totale Spesa:</strong> ${entry.grandTotal.toFixed(2)}${currencySymbol}</p>

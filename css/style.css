@@ -98,19 +98,40 @@ button {
 /* Form Aggiunta Prodotto */
 .add-item-form {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.5rem;
     margin-bottom: 1rem;
 }
 
-.add-item-form input {
-    flex-grow: 1;
+.add-item-form input, .add-item-form select {
     padding: 0.75rem;
     border: 1px solid var(--border-color);
     border-radius: 8px;
+    font-size: 1rem;
 }
 
-.add-item-form input[type="number"] {
+.add-item-form #item-category {
+    width: 100%;
+}
+
+.add-item-form #item-name {
+    flex-grow: 1;
+}
+
+.add-item-form #item-price {
     max-width: 80px;
+}
+
+.add-item-form #add-item-btn {
+    flex-basis: 100%;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    font-size: 0.9rem;
 }
 
 /* Carrello */
@@ -132,6 +153,13 @@ button {
 
 .cart-item .item-info {
     flex-grow: 1;
+}
+
+.non-voucher-tag {
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #d9534f;
+    margin-left: 8px;
 }
 
 .cart-item .item-actions button {

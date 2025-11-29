@@ -8,6 +8,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const barcodeReader = new ZXingBrowser.BrowserMultiFormatReader();
     let deferredInstallPrompt = null;
 
+    // Categorie Prodotti
+    const categories = [
+        "Generico", "Frutta e Verdura", "Carne e Pesce", "Pane e Pasticceria",
+        "Latticini e Uova", "Surgelati", "Dispensa", "Bevande", "Alcolici",
+        "Igiene e Casa", "Bambini", "Animali"
+    ];
+    const nonVoucherCategories = ["Alcolici", "Igiene e Casa"];
+
     // Elementi del DOM
     const screens = {
         home: document.getElementById('home-screen'),
@@ -18,8 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const elements = {
+        itemCategorySelect: document.getElementById('item-category'),
         itemNameInput: document.getElementById('item-name'),
         itemPriceInput: document.getElementById('item-price'),
+        itemNonVoucherCheckbox: document.getElementById('item-non-voucher'),
         addItemBtn: document.getElementById('add-item-btn'),
         scanBarcodeBtn: document.getElementById('scan-barcode-btn'),
         optimizeBtn: document.getElementById('optimize-btn'),
@@ -44,11 +54,21 @@ document.addEventListener('DOMContentLoaded', () => {
     init();
 
     function init() {
+        populateCategories();
         addEventListeners();
         db.initDB().then(() => {
             console.log('Database inizializzato.');
         });
         updateCartView();
+    }
+
+    function populateCategories() {
+        categories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.textContent = cat;
+            elements.itemCategorySelect.appendChild(option);
+        });
     }
 
     // Gestione Eventi
@@ -67,6 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.exportCsvBtn.addEventListener('click', exportHistoryAsCSV);
         elements.exportJsonBtn.addEventListener('click', exportHistoryAsJSON);
         elements.installPwaBtn.addEventListener('click', installPWA);
+        elements.itemCategorySelect.addEventListener('change', handleCategoryChange);
 
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
@@ -75,13 +96,24 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function handleCategoryChange(e) {
+        const selectedCategory = e.target.value;
+        if (nonVoucherCategories.includes(selectedCategory)) {
+            elements.itemNonVoucherCheckbox.checked = true;
+        } else {
+            elements.itemNonVoucherCheckbox.checked = false;
+        }
+    }
+
     // Funzioni Logiche
     function addItemManually() {
         const name = elements.itemNameInput.value.trim();
         const price = parseFloat(elements.itemPriceInput.value);
+        const category = elements.itemCategorySelect.value;
+        const isNonVoucher = elements.itemNonVoucherCheckbox.checked;
 
         if (name && !isNaN(price) && price > 0) {
-            addItemToCart({ name, price, quantity: 1 });
+            addItemToCart({ name, price, quantity: 1, category, isNonVoucher });
             elements.itemNameInput.value = '';
             elements.itemPriceInput.value = '';
             elements.itemNameInput.focus();
@@ -91,8 +123,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function addItemToCart(item) {
-        // Se l'articolo esiste già, aumenta la quantità
-        const existingItem = cart.find(cartItem => cartItem.name.toLowerCase() === item.name.toLowerCase());
+        const existingItem = cart.find(cartItem =>
+            cartItem.name.toLowerCase() === item.name.toLowerCase() &&
+            cartItem.isNonVoucher === item.isNonVoucher
+        );
         if (existingItem) {
             existingItem.quantity += 1;
         } else {
@@ -137,9 +171,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function stopScanner() {
-        // La chiamata a barcodeReader.reset() causava un errore.
-        // Fermare lo stream video è sufficiente per interrompere la scansione
-        // e prevenire il crash.
         const stream = elements.scannerVideo.srcObject;
         if (stream) {
             stream.getTracks().forEach(track => track.stop());
@@ -155,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const priceStr = prompt(`Inserisci il prezzo per "${name}":`);
             const price = parseFloat(priceStr);
             if (!isNaN(price) && price > 0) {
-                addItemToCart({ name, price, quantity: 1, barcode });
+                addItemToCart({ name, price, quantity: 1, category: 'Generico', isNonVoucher: false, barcode });
             } else {
                 alert('Prezzo non valido.');
             }
@@ -165,18 +196,30 @@ document.addEventListener('DOMContentLoaded', () => {
     function optimizeAndShowResults() {
         if (cart.length === 0) return;
 
-        // Espandi il carrello in singoli articoli
-        const itemsToOptimize = cart.flatMap(item =>
-            Array(item.quantity).fill({ name: item.name, price: item.price })
+        const allItems = cart.flatMap(item =>
+            Array(item.quantity).fill({ name: item.name, price: item.price, isNonVoucher: item.isNonVoucher })
         );
 
+        const voucherItems = allItems.filter(item => !item.isNonVoucher);
+        const nonVoucherItems = allItems.filter(item => item.isNonVoucher);
+
         const result = optimizer.optimizeSplit(
-            itemsToOptimize,
+            voucherItems,
             config.VOUCHER_VALUE_USER,
             config.VOUCHER_COUNT_USER,
             config.VOUCHER_VALUE_PARTNER,
             config.VOUCHER_COUNT_PARTNER
         );
+
+        const nonVoucherTotal = nonVoucherItems.reduce((sum, item) => sum + item.price, 0);
+        const nonVoucherSplit = nonVoucherTotal / 2;
+
+        result.user.cashToPay += nonVoucherSplit;
+        result.partner.cashToPay += nonVoucherSplit;
+        result.totalCash += nonVoucherTotal;
+        
+        result.nonVoucherItems = optimizer.groupItems(nonVoucherItems);
+        result.nonVoucherTotal = nonVoucherTotal;
         
         currentOptimizationResult = result;
         ui.displayResults(result, config);
