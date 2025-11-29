@@ -51,15 +51,21 @@ const ui = {
      * @param {Object} config - L'oggetto di configurazione.
      */
     displayResults(result, config) {
+        // Dettagli buoni utente
+        document.getElementById('user-voucher-count').textContent = config.VOUCHER_COUNT_USER;
         document.getElementById('user-voucher-value').textContent = config.VOUCHER_VALUE_USER.toFixed(2);
-        document.getElementById('partner-voucher-value').textContent = config.VOUCHER_VALUE_PARTNER.toFixed(2);
-
+        document.getElementById('user-total-capacity').textContent = (config.VOUCHER_COUNT_USER * config.VOUCHER_VALUE_USER).toFixed(2);
         this.renderResultList(document.getElementById('user-items'), result.user.items, config.CURRENCY_SYMBOL);
         document.getElementById('user-total-covered').textContent = result.user.total.toFixed(2);
 
+        // Dettagli buoni partner
+        document.getElementById('partner-voucher-count').textContent = config.VOUCHER_COUNT_PARTNER;
+        document.getElementById('partner-voucher-value').textContent = config.VOUCHER_VALUE_PARTNER.toFixed(2);
+        document.getElementById('partner-total-capacity').textContent = (config.VOUCHER_COUNT_PARTNER * config.VOUCHER_VALUE_PARTNER).toFixed(2);
         this.renderResultList(document.getElementById('partner-items'), result.partner.items, config.CURRENCY_SYMBOL);
         document.getElementById('partner-total-covered').textContent = result.partner.total.toFixed(2);
 
+        // Dettagli resto
         this.renderResultList(document.getElementById('remaining-items'), result.remaining.items, config.CURRENCY_SYMBOL);
         document.getElementById('remaining-total').textContent = result.remaining.total.toFixed(2);
         document.getElementById('remaining-per-person').textContent = result.remaining.perPerson.toFixed(2);

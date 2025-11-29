@@ -190,8 +190,14 @@ button {
 }
 
 .result-section h3 {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
     color: var(--text-color);
+}
+
+.result-section .voucher-details {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.75rem;
 }
 
 .result-section ul {

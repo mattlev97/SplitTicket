@@ -11,9 +11,9 @@ const config = {
   VOUCHER_VALUE_USER: 7.50, // Valore del tuo buono pasto
   VOUCHER_VALUE_PARTNER: 7.00, // Valore del buono pasto del partner
 
-  // NUMERO DI BUONI PASTO (per ora 1, estensibile in futuro)
-  VOUCHER_COUNT_USER: 1,
-  VOUCHER_COUNT_PARTNER: 1,
+  // NUMERO DI BUONI PASTO
+  VOUCHER_COUNT_USER: 2, // Numero di buoni pasto per te
+  VOUCHER_COUNT_PARTNER: 1, // Numero di buoni pasto per il partner
 
   // IMPOSTAZIONI ALGORITMO
   // L'algoritmo di ottimizzazione esatto (backtracking) può essere lento.

@@ -168,10 +168,14 @@ document.addEventListener('DOMContentLoaded', () => {
             Array(item.quantity).fill({ name: item.name, price: item.price })
         );
 
+        // Calcola la capacità totale dei buoni per ogni persona
+        const totalUserVoucher = config.VOUCHER_VALUE_USER * config.VOUCHER_COUNT_USER;
+        const totalPartnerVoucher = config.VOUCHER_VALUE_PARTNER * config.VOUCHER_COUNT_PARTNER;
+
         const result = optimizer.optimizeSplit(
             itemsToOptimize,
-            config.VOUCHER_VALUE_USER,
-            config.VOUCHER_VALUE_PARTNER,
+            totalUserVoucher,
+            totalPartnerVoucher,
             config.OPTIMIZER_EXACT_THRESHOLD
         );
         
