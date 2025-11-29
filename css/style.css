@@ -122,8 +122,15 @@ button {
     max-width: 80px;
 }
 
-.add-item-form #add-item-btn {
-    flex-basis: 100%;
+.add-item-actions {
+    display: flex;
+    width: 100%;
+    gap: 0.5rem;
+}
+
+.add-item-actions #add-item-btn {
+    flex-grow: 1;
+    background-color: var(--primary-color);
 }
 
 .checkbox-container {
