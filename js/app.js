@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
             elements.scannerVideo.srcObject = stream;
             ui.showScreen(screens.scanner, screens);
-            elements.scannerFeedback.textContent = 'Puntando la fotocameta...';
+            elements.scannerFeedback.textContent = 'Puntando la fotocamera...';
 
             barcodeReader.decodeFromStream(elements.scannerVideo, stream, (result, err) => {
                 if (result) {
@@ -137,7 +137,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function stopScanner() {
-        barcodeReader.reset();
+        // La chiamata a barcodeReader.reset() causava un errore.
+        // Fermare lo stream video è sufficiente per interrompere la scansione
+        // e prevenire il crash.
         const stream = elements.scannerVideo.srcObject;
         if (stream) {
             stream.getTracks().forEach(track => track.stop());
