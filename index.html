@@ -61,22 +61,26 @@
             </header>
             <main>
                 <div class="result-section">
-                    <h3>Assegnati a Te</h3>
-                    <p class="voucher-details">Buoni: <span id="user-voucher-count"></span> x <span id="user-voucher-value"></span>€ = <span id="user-total-capacity"></span>€</p>
+                    <h3>La Tua Spesa</h3>
+                    <p class="voucher-details">Buoni disponibili: <span id="user-voucher-capacity"></span>€</p>
                     <ul id="user-items"></ul>
-                    <p><strong>Totale coperto: <span id="user-total-covered"></span>€</strong></p>
+                    <p><strong>Totale carrello: <span id="user-cart-total"></span>€</strong></p>
+                    <p>Coperto da buoni: <span id="user-covered"></span>€</p>
+                    <p class="cash-to-pay"><strong>Resto da pagare: <span id="user-cash-to-pay"></span>€</strong></p>
                 </div>
                 <div class="result-section">
-                    <h3>Assegnati al Partner</h3>
-                    <p class="voucher-details">Buoni: <span id="partner-voucher-count"></span> x <span id="partner-voucher-value"></span>€ = <span id="partner-total-capacity"></span>€</p>
+                    <h3>Spesa del Partner</h3>
+                    <p class="voucher-details">Buoni disponibili: <span id="partner-voucher-capacity"></span>€</p>
                     <ul id="partner-items"></ul>
-                    <p><strong>Totale coperto: <span id="partner-total-covered"></span>€</strong></p>
+                    <p><strong>Totale carrello: <span id="partner-cart-total"></span>€</strong></p>
+                    <p>Coperto da buoni: <span id="partner-covered"></span>€</p>
+                    <p class="cash-to-pay"><strong>Resto da pagare: <span id="partner-cash-to-pay"></span>€</strong></p>
                 </div>
-                <div class="result-section">
-                    <h3>Resto da dividere</h3>
-                    <ul id="remaining-items"></ul>
-                    <p><strong>Totale resto: <span id="remaining-total"></span>€</strong></p>
-                    <p><strong>A testa: <span id="remaining-per-person"></span>€</strong></p>
+                <div class="result-summary">
+                    <h4>Riepilogo Totale</h4>
+                    <p>Spesa totale: <span id="grand-total"></span>€</p>
+                    <p>Coperto da buoni: <span id="total-covered-by-vouchers"></span>€</p>
+                    <p><strong>Totale contanti: <span id="total-cash-to-pay"></span>€</strong></p>
                 </div>
             </main>
             <footer>

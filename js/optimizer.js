@@ -3,138 +3,106 @@
 
 const optimizer = {
     /**
-     * Funzione principale che sceglie l'algoritmo da usare.
-     * @param {Array} items - Array di oggetti {name, price}.
-     * @param {number} userVoucher - Valore del buono utente.
-     * @param {number} partnerVoucher - Valore del buono partner.
-     * @param {number} threshold - Soglia di articoli per usare l'algoritmo esatto.
-     * @returns {Object} - Il risultato dell'ottimizzazione.
+     * Funzione principale che partiziona l'intero carrello in due spese separate
+     * per minimizzare il totale da pagare in contanti.
      */
-    optimizeSplit(items, userVoucher, partnerVoucher, threshold) {
+    optimizeSplit(items, userVoucherTotal, partnerVoucherTotal, threshold) {
         const startTime = performance.now();
         let result;
 
-        if (items.length > threshold) {
-            console.log(`Numero di articoli (${items.length}) > soglia (${threshold}). Uso euristica greedy.`);
-            result = this.greedyHeuristic(items, userVoucher, partnerVoucher);
-            result.algorithm = 'greedy';
-        } else {
-            console.log(`Numero di articoli (${items.length}) <= soglia (${threshold}). Uso backtracking.`);
-            result = this.backtrackingOptimizer(items, userVoucher, partnerVoucher);
-            result.algorithm = 'backtracking';
+        // Per questo problema, l'euristica greedy è meno efficace.
+        // Usiamo il backtracking che ora è più veloce (2^n invece di 3^n).
+        // Aumentiamo leggermente la soglia.
+        if (items.length > threshold + 2) {
+            // TODO: Implementare un'euristica migliore per il problema della partizione,
+            // per ora usiamo il backtracking anche per un numero maggiore di articoli,
+            // avvisando l'utente che potrebbe essere lento.
+            console.warn(`Numero di articoli (${items.length}) alto. Il calcolo potrebbe richiedere tempo.`);
         }
+        
+        console.log(`Uso l'algoritmo di partizione (backtracking).`);
+        result = this.partitionOptimizer(items, userVoucherTotal, partnerVoucherTotal);
+        result.algorithm = 'partition-backtracking';
         
         const endTime = performance.now();
         result.computationTime = (endTime - startTime).toFixed(2) + 'ms';
         console.log(`Ottimizzazione completata in ${result.computationTime}`);
         
-        return this.formatResult(result, items);
+        return this.formatResult(result, items, userVoucherTotal, partnerVoucherTotal);
     },
 
     /**
-     * Algoritmo di backtracking che trova la soluzione ottimale.
-     * Esplora tutte le combinazioni possibili.
+     * Algoritmo di backtracking che partiziona gli articoli in due set (carrello utente, carrello partner)
+     * per minimizzare il totale da pagare in contanti.
      */
-    backtrackingOptimizer(items, userVoucher, partnerVoucher) {
+    partitionOptimizer(items, userVoucherTotal, partnerVoucherTotal) {
         let bestSolution = {
             userItems: [],
             partnerItems: [],
-            remainingItems: [],
-            userSum: 0,
-            partnerSum: 0,
-            maxCovered: -1
+            minCashToPay: Infinity
         };
 
         function solve(index, currentUserItems, currentPartnerItems, currentUserSum, currentPartnerSum) {
             // Caso base: abbiamo processato tutti gli articoli
             if (index === items.length) {
-                const totalCovered = currentUserSum + currentPartnerSum;
-                if (totalCovered > bestSolution.maxCovered) {
-                    bestSolution.maxCovered = totalCovered;
+                const userCash = Math.max(0, currentUserSum - userVoucherTotal);
+                const partnerCash = Math.max(0, currentPartnerSum - partnerVoucherTotal);
+                const totalCash = userCash + partnerCash;
+
+                if (totalCash < bestSolution.minCashToPay) {
+                    bestSolution.minCashToPay = totalCash;
                     bestSolution.userItems = [...currentUserItems];
                     bestSolution.partnerItems = [...currentPartnerItems];
-                    bestSolution.userSum = currentUserSum;
-                    bestSolution.partnerSum = currentPartnerSum;
                 }
                 return;
             }
 
             const item = items[index];
 
-            // 1. Prova ad assegnare l'articolo all'utente
-            if (currentUserSum + item.price <= userVoucher) {
-                currentUserItems.push(item);
-                solve(index + 1, currentUserItems, currentPartnerItems, currentUserSum + item.price, currentPartnerSum);
-                currentUserItems.pop(); // Backtrack
-            }
+            // Branch 1: Assegna l'articolo all'utente
+            currentUserItems.push(item);
+            solve(index + 1, currentUserItems, currentPartnerItems, currentUserSum + item.price, currentPartnerSum);
+            currentUserItems.pop(); // Backtrack
 
-            // 2. Prova ad assegnare l'articolo al partner
-            if (currentPartnerSum + item.price <= partnerVoucher) {
-                currentPartnerItems.push(item);
-                solve(index + 1, currentUserItems, currentPartnerItems, currentUserSum, currentPartnerSum + item.price);
-                currentPartnerItems.pop(); // Backtrack
-            }
-
-            // 3. Non assegnare l'articolo a nessuno (va nel resto)
-            solve(index + 1, currentUserItems, currentPartnerItems, currentUserSum, currentPartnerSum);
+            // Branch 2: Assegna l'articolo al partner
+            currentPartnerItems.push(item);
+            solve(index + 1, currentUserItems, currentPartnerItems, currentUserSum, currentPartnerSum + item.price);
+            currentPartnerItems.pop(); // Backtrack
         }
 
         solve(0, [], [], 0, 0);
         return bestSolution;
     },
-
-    /**
-     * Euristica greedy: veloce ma non garantisce l'ottimalità.
-     * Ordina gli articoli per prezzo decrescente e li assegna al primo buono disponibile.
-     */
-    greedyHeuristic(items, userVoucher, partnerVoucher) {
-        const sortedItems = [...items].sort((a, b) => b.price - a.price);
-        
-        const solution = {
-            userItems: [],
-            partnerItems: [],
-            userSum: 0,
-            partnerSum: 0,
-        };
-
-        for (const item of sortedItems) {
-            if (solution.userSum + item.price <= userVoucher) {
-                solution.userItems.push(item);
-                solution.userSum += item.price;
-            } else if (solution.partnerSum + item.price <= partnerVoucher) {
-                solution.partnerItems.push(item);
-                solution.partnerSum += item.price;
-            }
-        }
-        
-        return solution;
-    },
     
     /**
      * Formatta il risultato finale in una struttura dati consistente.
      */
-    formatResult(solution, allItems) {
-        const assignedItems = new Set([...solution.userItems, ...solution.partnerItems]);
-        const remainingItems = allItems.filter(item => !assignedItems.has(item));
-        
-        const totalSum = allItems.reduce((sum, item) => sum + item.price, 0);
-        const remainingSum = remainingItems.reduce((sum, item) => sum + item.price, 0);
+    formatResult(solution, allItems, userVoucherTotal, partnerVoucherTotal) {
+        const userCartSum = solution.userItems.reduce((sum, item) => sum + item.price, 0);
+        const partnerCartSum = solution.partnerItems.reduce((sum, item) => sum + item.price, 0);
+
+        const userCovered = Math.min(userCartSum, userVoucherTotal);
+        const partnerCovered = Math.min(partnerCartSum, partnerVoucherTotal);
+
+        const userCash = userCartSum - userCovered;
+        const partnerCash = partnerCartSum - partnerCovered;
 
         return {
             user: {
                 items: this.groupItems(solution.userItems),
-                total: solution.userSum
+                cartTotal: userCartSum,
+                coveredByVoucher: userCovered,
+                cashToPay: userCash
             },
             partner: {
                 items: this.groupItems(solution.partnerItems),
-                total: solution.partnerSum
+                cartTotal: partnerCartSum,
+                coveredByVoucher: partnerCovered,
+                cashToPay: partnerCash
             },
-            remaining: {
-                items: this.groupItems(remainingItems),
-                total: remainingSum,
-                perPerson: remainingSum / 2
-            },
-            total: totalSum,
+            grandTotal: allItems.reduce((sum, item) => sum + item.price, 0),
+            totalCovered: userCovered + partnerCovered,
+            totalCash: userCash + partnerCash,
             algorithm: solution.algorithm,
             computationTime: solution.computationTime
         };

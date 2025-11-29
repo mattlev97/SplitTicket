@@ -203,12 +203,29 @@ button {
 .result-section ul {
     list-style: none;
     padding-left: 0;
+    margin-bottom: 0.5rem;
 }
 
 .result-section li {
     display: flex;
     justify-content: space-between;
     padding: 0.25rem 0;
+    font-size: 0.9rem;
+}
+
+.result-section .cash-to-pay {
+    margin-top: 0.5rem;
+    font-size: 1.1rem;
+    color: var(--danger-color);
+    background-color: #fff5f5;
+    padding: 0.5rem;
+    border-radius: 4px;
+}
+
+.result-summary {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 2px solid var(--primary-color);
 }
 
 /* Storico */
