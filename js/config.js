@@ -5,7 +5,7 @@ const CONFIG_KEY = 'splitTicketConfig';
 
 // Valori di default usati al primo avvio o se non ci sono impostazioni salvate.
 const defaultConfig = {
-    APP_VERSION: '1.0.1',
+    APP_VERSION: '1.0.2',
     VOUCHER_VALUE_USER: 7.50,
     VOUCHER_VALUE_PARTNER: 7.00,
     VOUCHER_COUNT_USER: 6,
@@ -47,7 +47,7 @@ const configManager = {
             localStorage.setItem(CONFIG_KEY, JSON.stringify(newConfig));
             return true;
         } catch (error) {
-            console.error("Errore nel salvataggio della configurazione:", error);
+            console.error("Errore nel salvattaggio della configurazione:", error);
             return false;
         }
     }
