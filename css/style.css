@@ -104,7 +104,7 @@ body {
 
 /* Schermata Home specifica */
 #home-screen {
-    gap: 1rem;
+    padding-bottom: 0;
 }
 #cart-items-container {
     padding: 1rem;
@@ -112,6 +112,9 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 16px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-bottom: 1rem;
 }
 .add-item-container {
     padding: 1rem;
@@ -128,26 +131,41 @@ body {
     justify-content: space-around;
     align-items: center;
     background-color: #fff;
-    margin: 1rem 1rem 1.5rem 1rem;
-    padding: 0.5rem 0;
-    border-radius: 16px;
+    margin: 1rem 1rem 2rem 1rem;
+    padding: 0.75rem 0;
+    border-radius: 24px;
     border: 1px solid var(--border-color);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     flex-shrink: 0;
 }
 
 .nav-btn {
     background: none;
     border: none;
-    font-size: 1.75rem;
-    color: var(--nav-icon-color);
     cursor: pointer;
     padding: 0.5rem;
-    line-height: 1;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.nav-btn svg {
+    width: 28px;
+    height: 28px;
+    stroke: var(--nav-icon-color);
+    transition: stroke 0.2s ease-in-out;
 }
 
 .nav-btn.active {
-    color: var(--brand-color);
+    background-color: var(--secondary-color);
+}
+
+.nav-btn.active svg {
+    stroke: var(--brand-color);
 }
 
 /* Menu Laterale */
