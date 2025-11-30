@@ -6,7 +6,18 @@ document.addEventListener('DOMContentLoaded', () => {
     let cart = [];
     let currentOptimizationResult = null;
     let appConfig = configManager.loadConfig(); // Carica la configurazione all'avvio
-    const barcodeReader = new ZXingBrowser.BrowserMultiFormatReader();
+    
+    // Configura lo scanner per i formati di prodotto più comuni
+    const hints = new Map();
+    const formats = [
+        ZXingBrowser.BarcodeFormat.EAN_13,
+        ZXingBrowser.BarcodeFormat.EAN_8,
+        ZXingBrowser.BarcodeFormat.UPC_A,
+        ZXingBrowser.BarcodeFormat.UPC_E
+    ];
+    hints.set(ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS, formats);
+    const barcodeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
+    
     let deferredInstallPrompt = null;
 
     // Elementi del DOM
@@ -196,9 +207,9 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
             elements.scannerVideo.srcObject = stream;
-            elements.scannerVideo.play(); // Assicura che il video parta
+            elements.scannerVideo.play();
             ui.showScreen(screens.scanner, screens);
-            elements.scannerFeedback.textContent = 'Puntando la fotocamera...';
+            elements.scannerFeedback.textContent = 'Inquadra il codice a barre al centro del riquadro.';
 
             barcodeReader.decodeFromStream(elements.scannerVideo, stream, (result, err) => {
                 if (result) {
@@ -206,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 if (err && !(err instanceof ZXingBrowser.NotFoundException)) {
                     console.error(err);
-                    elements.scannerFeedback.textContent = 'Errore durante la scansione.';
+                    elements.scannerFeedback.textContent = 'Scansione fallita. Prova con più luce e metti a fuoco.';
                 }
             });
         } catch (error) {
@@ -217,6 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function stopScanner() {
+        barcodeReader.reset();
         const stream = elements.scannerVideo.srcObject;
         if (stream) {
             stream.getTracks().forEach(track => track.stop());
