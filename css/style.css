@@ -137,7 +137,7 @@ button {
 }
 
 .add-item-form #item-price {
-    max-width: 80px;
+    width: 120px;
 }
 
 .add-item-actions {
