@@ -169,13 +169,17 @@ button {
     flex-grow: 1;
     background-color: #f0f0f0;
     color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding-top: calc(0.75rem - 1px);
+    padding-bottom: calc(0.75rem - 1px);
 }
 
 #scan-barcode-btn {
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    padding: 0.75rem;
     background-color: #fff;
+    padding-top: calc(0.75rem - 1px);
+    padding-bottom: calc(0.75rem - 1px);
 }
 
 
