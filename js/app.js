@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentOptimizationResult = null;
     let appConfig = configManager.loadConfig(); // Carica la configurazione all'avvio
     
-    let barcodeReader = null; // Verrà inizializzato al primo uso
+    let barcodeReader = null;
     let deferredInstallPrompt = null;
 
     // Elementi del DOM
@@ -67,6 +67,11 @@ document.addEventListener('DOMContentLoaded', () => {
         db.initDB().then(() => console.log('Database inizializzato.'));
         applyConfig();
         updateCartView();
+        
+        // Attende che la pagina sia completamente caricata, inclusi script esterni come ZXing
+        window.addEventListener('load', () => {
+            initScanner();
+        });
     }
     
     function applyConfig() {
@@ -196,13 +201,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initScanner() {
-        if (barcodeReader) return; // Già inizializzato
-
         if (typeof ZXing === 'undefined') {
-            alert("Libreria di scansione non ancora pronta. Riprova tra un istante.");
+            console.error("ZXing library not loaded yet.");
             return;
         }
-        
         const hints = new Map();
         const formats = [
             ZXing.BarcodeFormat.EAN_13,
@@ -212,11 +214,14 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
         hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
         barcodeReader = new ZXing.BrowserMultiFormatReader(hints);
+        console.log("Scanner initialized successfully.");
     }
 
     async function startScanner() {
-        initScanner();
-        if (!barcodeReader) return;
+        if (!barcodeReader) {
+            alert("Lo scanner non è ancora pronto. Riprova tra un istante.");
+            return;
+        }
 
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
@@ -253,9 +258,24 @@ document.addEventListener('DOMContentLoaded', () => {
         ui.showScreen(screens.home, screens);
     }
 
-    function handleBarcodeResult(barcode) {
+    async function handleBarcodeResult(barcode) {
         stopScanner();
-        const name = prompt(`Codice a barre rilevato: ${barcode}\nInserisci il nome del prodotto:`, `Prodotto ${barcode}`);
+        alert('Ricerca prodotto in corso...');
+
+        let productName = `Prodotto ${barcode}`;
+        try {
+            const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.status === 1 && data.product && data.product.product_name) {
+                    productName = data.product.product_name;
+                }
+            }
+        } catch (error) {
+            console.error("Errore nel recupero da Open Food Facts:", error);
+        }
+
+        const name = prompt(`Codice a barre rilevato: ${barcode}\nInserisci il nome del prodotto:`, productName);
         if (name) {
             const priceStr = prompt(`Inserisci il prezzo per "${name}":`);
             const price = parseFloat(priceStr);
