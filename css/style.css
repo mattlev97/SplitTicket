@@ -82,6 +82,7 @@ body {
     font-weight: 500;
     color: #777;
     margin-top: 2px;
+    font-style: italic;
 }
 
 #header-title .ticket-part {
