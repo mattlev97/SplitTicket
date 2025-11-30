@@ -147,7 +147,7 @@ button {
 
 .add-item-actions #add-item-btn {
     flex-grow: 1;
-    background-color: var(--primary-color);
+    background-color: var(--brand-color);
     color: white;
     font-weight: bold;
 }
