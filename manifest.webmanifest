@@ -1,21 +1,22 @@
 {
-    "name": "SplitTicket",
-    "short_name": "SplitTicket",
-    "description": "App per dividere la spesa ottimizzando i buoni pasto.",
-    "start_url": "/",
-    "display": "standalone",
-    "background_color": "#A2D2FF",
-    "theme_color": "#A2D2FF",
-    "icons": [
-        {
-            "src": "icons/icon-192x192.png",
-            "sizes": "192x192",
-            "type": "image/png"
-        },
-        {
-            "src": "icons/icon-512x512.png",
-            "sizes": "512x512",
-            "type": "image/png"
-        }
-    ]
+  "name": "SplitTicket",
+  "short_name": "SplitTicket",
+  "description": "App per dividere la spesa ottimizzando i buoni pasto.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#FDFEFE",
+  "theme_color": "#A2D2FF",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
