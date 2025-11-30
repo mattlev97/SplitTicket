@@ -90,18 +90,22 @@ body {
 
 /* Schermata Home specifica */
 #home-screen {
-    justify-content: space-between;
-    padding: 0;
+    gap: 1rem;
 }
 #cart-items-container {
-    overflow-y: auto;
     padding: 1rem;
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 .add-item-container {
     padding: 1rem;
     background-color: #fff;
-    border-radius: 16px 16px 0 0;
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    flex-shrink: 0;
 }
 
 /* Barra di Navigazione Inferiore */
