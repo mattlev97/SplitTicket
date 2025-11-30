@@ -196,6 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
             elements.scannerVideo.srcObject = stream;
+            elements.scannerVideo.play(); // Assicura che il video parta
             ui.showScreen(screens.scanner, screens);
             elements.scannerFeedback.textContent = 'Puntando la fotocamera...';
 
