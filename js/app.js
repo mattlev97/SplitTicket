@@ -65,8 +65,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mappa dei titoli per le schermate
     const screenTitles = {
         home: 'Split<span class="ticket-part">Ticket</span>',
-        history: 'Storico',
-        settings: 'Impostazioni',
+        history: 'Split<span class="ticket-part">Ticket</span>',
+        settings: 'Split<span class="ticket-part">Ticket</span>',
         result: 'Risultati',
         scanner: 'Scanner'
     };
