@@ -7,17 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentOptimizationResult = null;
     let appConfig = configManager.loadConfig(); // Carica la configurazione all'avvio
     
-    // Configura lo scanner per i formati di prodotto più comuni
-    const hints = new Map();
-    const formats = [
-        ZXing.BarcodeFormat.EAN_13,
-        ZXing.BarcodeFormat.EAN_8,
-        ZXing.BarcodeFormat.UPC_A,
-        ZXing.BarcodeFormat.UPC_E
-    ];
-    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
-    const barcodeReader = new ZXing.BrowserMultiFormatReader(hints);
-    
+    let barcodeReader = null; // Verrà inizializzato al primo uso
     let deferredInstallPrompt = null;
 
     // Elementi del DOM
@@ -203,7 +193,29 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.optimizeBtn.disabled = cart.length === 0;
     }
 
+    function initScanner() {
+        if (barcodeReader) return; // Già inizializzato
+
+        if (typeof ZXing === 'undefined') {
+            alert("Libreria di scansione non ancora pronta. Riprova tra un istante.");
+            return;
+        }
+        
+        const hints = new Map();
+        const formats = [
+            ZXing.BarcodeFormat.EAN_13,
+            ZXing.BarcodeFormat.EAN_8,
+            ZXing.BarcodeFormat.UPC_A,
+            ZXing.BarcodeFormat.UPC_E
+        ];
+        hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
+        barcodeReader = new ZXing.BrowserMultiFormatReader(hints);
+    }
+
     async function startScanner() {
+        initScanner();
+        if (!barcodeReader) return;
+
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
             elements.scannerVideo.srcObject = stream;
@@ -228,7 +240,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function stopScanner() {
-        barcodeReader.reset();
+        if (barcodeReader) {
+            barcodeReader.reset();
+        }
         const stream = elements.scannerVideo.srcObject;
         if (stream) {
             stream.getTracks().forEach(track => track.stop());
