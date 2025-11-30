@@ -81,8 +81,11 @@ main {
 
 footer {
     padding: 1rem;
-    border-top: 1px solid var(--border-color);
     background-color: #fff;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+    border-top: none;
 }
 
 /* Bottoni */
