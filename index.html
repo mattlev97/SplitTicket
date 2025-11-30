@@ -166,15 +166,14 @@
         </header>
         <main>
             <div id="scanner-container">
-                <video id="scanner-video" playsinline></video>
-                <div class="scanner-overlay"></div>
+                <!-- QuaggaJS attaccherà qui il video e il canvas -->
             </div>
             <p id="scanner-feedback">In attesa di un codice...</p>
         </main>
     </div>
 
     <!-- Libreria per lo scanner di codici a barre via CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@latest/umd/zxing-library.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
     
     <!-- Script dell'applicazione -->
     <script src="js/config.js"></script>

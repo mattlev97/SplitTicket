@@ -6,8 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let cart = [];
     let currentOptimizationResult = null;
     let appConfig = configManager.loadConfig();
-    let barcodeReader = null;
     let deferredInstallPrompt = null;
+    let isScannerReady = false;
 
     // Elementi del DOM
     const screens = {
@@ -41,8 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
         totalAmountSpan: document.getElementById('total-amount'),
         
         // Schermata Scanner
+        scannerContainer: document.getElementById('scanner-container'),
         closeScannerBtn: document.getElementById('close-scanner-btn'),
-        scannerVideo: document.getElementById('scanner-video'),
         scannerFeedback: document.getElementById('scanner-feedback'),
         
         // Schermata Risultati
@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
         db.initDB().then(() => console.log('Database inizializzato.'));
         applyConfig();
         updateCartView();
-        navigateTo('home'); // Imposta la schermata iniziale
+        navigateTo('home');
         initScanner();
     }
     
@@ -107,17 +107,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Gestione Eventi
     function addEventListeners() {
-        // Navigazione
         elements.hamburgerBtn.addEventListener('click', toggleSideMenu);
         elements.sideMenuOverlay.addEventListener('click', toggleSideMenu);
         elements.bottomNavButtons.forEach(btn => btn.addEventListener('click', () => navigateTo(btn.dataset.screen)));
-        elements.sideMenuLinks.forEach(link => link.addEventListener('click', (e) => {
-            e.preventDefault();
-            navigateTo(link.dataset.screen);
-            toggleSideMenu();
-        }));
+        elements.sideMenuLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                navigateTo(link.dataset.screen);
+                toggleSideMenu();
+            });
+        });
 
-        // Azioni specifiche
         elements.addItemBtn.addEventListener('click', addItemManually);
         elements.optimizeBtn.addEventListener('click', optimizeAndShowResults);
         elements.scanBarcodeBtn.addEventListener('click', startScanner);
@@ -138,35 +138,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Logica di Navigazione
     function navigateTo(screenName) {
-        // Nasconde tutte le schermate
         Object.values(screens).forEach(screen => screen.classList.remove('active'));
-        
-        // Mostra la schermata richiesta
-        if (screens[screenName]) {
-            screens[screenName].classList.add('active');
-        }
-
-        // Aggiorna il titolo dell'header
+        if (screens[screenName]) screens[screenName].classList.add('active');
         elements.headerTitle.innerHTML = screenTitles[screenName] || 'SplitTicket';
-
-        // Mostra/nascondi il sottotitolo
-        if (screenName === 'home' || screenName === 'history' || screenName === 'settings') {
-            elements.headerSubtitle.style.display = 'block';
-        } else {
-            elements.headerSubtitle.style.display = 'none';
-        }
-
-        // Aggiorna lo stato attivo della barra inferiore
-        elements.bottomNavButtons.forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.screen === screenName);
-        });
-
-        // Carica i dati se si va allo storico
-        if (screenName === 'history') {
-            loadHistory();
-        }
+        elements.headerSubtitle.style.display = ['home', 'history', 'settings'].includes(screenName) ? 'block' : 'none';
+        elements.bottomNavButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.screen === screenName));
+        if (screenName === 'history') loadHistory();
     }
 
     function toggleSideMenu() {
@@ -175,18 +153,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleCategoryChange(e) {
-        const selectedCategory = e.target.value;
-        elements.itemNonVoucherCheckbox.checked = appConfig.NON_VOUCHER_CATEGORIES.includes(selectedCategory);
+        elements.itemNonVoucherCheckbox.checked = appConfig.NON_VOUCHER_CATEGORIES.includes(e.target.value);
     }
     
     function saveSettings() {
         const newUserVoucher = parseFloat(elements.settingUserVoucherValue.value);
         const newPartnerVoucher = parseFloat(elements.settingPartnerVoucherValue.value);
-        
         if (isNaN(newUserVoucher) || isNaN(newPartnerVoucher) || newUserVoucher < 0 || newPartnerVoucher < 0) {
             alert("I valori dei buoni non sono validi."); return;
         }
-
         const newConfig = {
             ...appConfig,
             VOUCHER_VALUE_USER: newUserVoucher,
@@ -194,7 +169,6 @@ document.addEventListener('DOMContentLoaded', () => {
             CATEGORIES: elements.settingCategories.value.split(',').map(s => s.trim()).filter(Boolean),
             NON_VOUCHER_CATEGORIES: elements.settingNonVoucherCategories.value.split(',').map(s => s.trim()).filter(Boolean)
         };
-
         if (configManager.saveConfig(newConfig)) {
             appConfig = newConfig;
             applyConfig();
@@ -205,7 +179,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Funzioni Logiche Principali
     function addItemManually() {
         const name = elements.itemNameInput.value.trim();
         const price = parseFloat(elements.itemPriceInput.value);
@@ -221,11 +194,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function addItemToCart(item) {
         const existingItem = cart.find(ci => ci.name.toLowerCase() === item.name.toLowerCase() && ci.isNonVoucher === item.isNonVoucher);
-        if (existingItem) {
-            existingItem.quantity++;
-        } else {
-            cart.push({ id: Date.now(), ...item });
-        }
+        if (existingItem) existingItem.quantity++;
+        else cart.push({ id: Date.now(), ...item });
         updateCartView();
     }
 
@@ -242,54 +212,53 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initScanner() {
-        if (typeof ZXing === 'undefined') {
-            console.error("ZXing library not loaded.");
+        if (typeof Quagga !== 'undefined') {
+            isScannerReady = true;
+            console.log("Scanner (QuaggaJS) pronto.");
+        } else {
             elements.scanBarcodeBtn.disabled = true;
-            elements.scanBarcodeBtn.style.cursor = 'not-allowed';
-            elements.scanBarcodeBtn.title = "Funzione scanner non disponibile. Controlla la connessione internet.";
-            return;
-        }
-        try {
-            const hints = new Map();
-            hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [ZXing.BarcodeFormat.EAN_13, ZXing.BarcodeFormat.EAN_8]);
-            barcodeReader = new ZXing.BrowserMultiFormatReader(hints);
-            console.log("Scanner initialized.");
-        } catch (error) {
-            console.error("Failed to initialize scanner:", error);
-            elements.scanBarcodeBtn.disabled = true;
-            elements.scanBarcodeBtn.style.cursor = 'not-allowed';
-            elements.scanBarcodeBtn.title = "Impossibile avviare lo scanner.";
+            elements.scanBarcodeBtn.title = "Libreria scanner non caricata.";
         }
     }
 
-    async function startScanner() {
-        if (!barcodeReader) { alert("Scanner non pronto."); return; }
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-            elements.scannerVideo.srcObject = stream;
-            elements.scannerVideo.play();
-            navigateTo('scanner');
-            elements.scannerFeedback.textContent = 'Inquadra il codice...';
-            barcodeReader.decodeFromStream(elements.scannerVideo, stream, (result, err) => {
-                if (result) handleBarcodeResult(result.getText());
-                if (err && !(err instanceof ZXing.NotFoundException)) console.error(err);
-            });
-        } catch (error) {
-            console.error('Errore fotocamera:', error);
-            alert('Impossibile accedere alla fotocamera.');
-            navigateTo('home');
+    function startScanner() {
+        if (!isScannerReady) {
+            alert("Scanner non pronto.");
+            return;
         }
+        navigateTo('scanner');
+        Quagga.init({
+            inputStream: {
+                name: "Live",
+                type: "LiveStream",
+                target: elements.scannerContainer,
+                constraints: { width: 480, height: 320, facingMode: "environment" },
+            },
+            decoder: { readers: ["ean_reader"] },
+        }, (err) => {
+            if (err) {
+                console.error(err);
+                alert("Errore durante l'avvio dello scanner. Controlla i permessi della fotocamera.");
+                stopScanner();
+                return;
+            }
+            console.log("Scanner avviato.");
+            Quagga.start();
+        });
+
+        Quagga.onDetected(handleBarcodeResult);
     }
 
     function stopScanner() {
-        if (barcodeReader) barcodeReader.reset();
-        const stream = elements.scannerVideo.srcObject;
-        if (stream) stream.getTracks().forEach(track => track.stop());
-        elements.scannerVideo.srcObject = null;
+        if (typeof Quagga !== 'undefined') {
+            Quagga.offDetected(handleBarcodeResult);
+            Quagga.stop();
+        }
         navigateTo('home');
     }
 
-    async function handleBarcodeResult(barcode) {
+    async function handleBarcodeResult(data) {
+        const barcode = data.codeResult.code;
         stopScanner();
         alert('Ricerca prodotto in corso...');
         let productName = `Prodotto ${barcode}`;
@@ -388,6 +357,5 @@ document.addEventListener('DOMContentLoaded', () => {
         if (deferredInstallPrompt) deferredInstallPrompt.prompt();
     }
 
-    // Avvia l'app
     init();
 });
