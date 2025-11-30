@@ -10,13 +10,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Configura lo scanner per i formati di prodotto più comuni
     const hints = new Map();
     const formats = [
-        ZXingBrowser.BarcodeFormat.EAN_13,
-        ZXingBrowser.BarcodeFormat.EAN_8,
-        ZXingBrowser.BarcodeFormat.UPC_A,
-        ZXingBrowser.BarcodeFormat.UPC_E
+        ZXing.BarcodeFormat.EAN_13,
+        ZXing.BarcodeFormat.EAN_8,
+        ZXing.BarcodeFormat.UPC_A,
+        ZXing.BarcodeFormat.UPC_E
     ];
-    hints.set(ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS, formats);
-    const barcodeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
+    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
+    const barcodeReader = new ZXing.BrowserMultiFormatReader(hints);
     
     let deferredInstallPrompt = null;
 
@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (result) {
                     handleBarcodeResult(result.getText());
                 }
-                if (err && !(err instanceof ZXingBrowser.NotFoundException)) {
+                if (err && !(err instanceof ZXing.NotFoundException)) {
                     console.error(err);
                     elements.scannerFeedback.textContent = 'Scansione fallita. Prova con più luce e metti a fuoco.';
                 }
