@@ -5,8 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Stato dell'applicazione
     let cart = [];
     let currentOptimizationResult = null;
-    let appConfig = configManager.loadConfig(); // Carica la configurazione all'avvio
-    
+    let appConfig = configManager.loadConfig();
     let barcodeReader = null;
     let deferredInstallPrompt = null;
 
@@ -20,6 +19,14 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const elements = {
+        // Navigazione Globale
+        hamburgerBtn: document.getElementById('hamburger-btn'),
+        sideMenu: document.getElementById('side-menu'),
+        sideMenuOverlay: document.getElementById('side-menu-overlay'),
+        sideMenuLinks: document.querySelectorAll('.side-menu-link'),
+        bottomNavButtons: document.querySelectorAll('.nav-btn'),
+        headerTitle: document.getElementById('header-title'),
+
         // Schermata Home
         appVersionSpan: document.getElementById('app-version'),
         itemCategorySelect: document.getElementById('item-category'),
@@ -31,7 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
         optimizeBtn: document.getElementById('optimize-btn'),
         cartItemsContainer: document.getElementById('cart-items'),
         totalAmountSpan: document.getElementById('total-amount'),
-        settingsBtn: document.getElementById('settings-btn'),
         
         // Schermata Scanner
         closeScannerBtn: document.getElementById('close-scanner-btn'),
@@ -43,14 +49,11 @@ document.addEventListener('DOMContentLoaded', () => {
         saveHistoryBtn: document.getElementById('save-history-btn'),
         
         // Schermata Storico
-        closeHistoryBtn: document.getElementById('close-history-btn'),
         exportCsvBtn: document.getElementById('export-csv-btn'),
         exportJsonBtn: document.getElementById('export-json-btn'),
         clearHistoryBtn: document.getElementById('clear-history-btn'),
         
         // Schermata Impostazioni
-        closeSettingsBtn: document.getElementById('close-settings-btn'),
-        historyLink: document.getElementById('history-link'),
         installPwaBtn: document.getElementById('install-pwa-btn'),
         saveSettingsBtn: document.getElementById('save-settings-btn'),
         settingUserVoucherValue: document.getElementById('setting-user-voucher-value'),
@@ -59,19 +62,24 @@ document.addEventListener('DOMContentLoaded', () => {
         settingNonVoucherCategories: document.getElementById('setting-non-voucher-categories'),
     };
 
-    // Inizializzazione
-    init();
+    // Mappa dei titoli per le schermate
+    const screenTitles = {
+        home: 'Split<span class="ticket-part">Ticket</span>',
+        history: 'Storico',
+        settings: 'Impostazioni',
+        result: 'Risultati',
+        scanner: 'Scanner'
+    };
 
+    // Inizializzazione
     function init() {
         addEventListeners();
         db.initDB().then(() => console.log('Database inizializzato.'));
         applyConfig();
         updateCartView();
+        navigateTo('home'); // Imposta la schermata iniziale
         
-        // Attende che la pagina sia completamente caricata, inclusi script esterni come ZXing
-        window.addEventListener('load', () => {
-            initScanner();
-        });
+        window.addEventListener('load', initScanner);
     }
     
     function applyConfig() {
@@ -99,16 +107,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Gestione Eventi
     function addEventListeners() {
+        // Navigazione
+        elements.hamburgerBtn.addEventListener('click', toggleSideMenu);
+        elements.sideMenuOverlay.addEventListener('click', toggleSideMenu);
+        elements.bottomNavButtons.forEach(btn => btn.addEventListener('click', () => navigateTo(btn.dataset.screen)));
+        elements.sideMenuLinks.forEach(link => link.addEventListener('click', (e) => {
+            e.preventDefault();
+            navigateTo(link.dataset.screen);
+            toggleSideMenu();
+        }));
+
+        // Azioni specifiche
         elements.addItemBtn.addEventListener('click', addItemManually);
         elements.optimizeBtn.addEventListener('click', optimizeAndShowResults);
         elements.scanBarcodeBtn.addEventListener('click', startScanner);
         elements.closeScannerBtn.addEventListener('click', stopScanner);
-        elements.closeResultBtn.addEventListener('click', () => ui.showScreen(screens.home, screens));
+        elements.closeResultBtn.addEventListener('click', () => navigateTo('home'));
         elements.saveHistoryBtn.addEventListener('click', saveResultToHistory);
-        elements.settingsBtn.addEventListener('click', () => ui.showScreen(screens.settings, screens));
-        elements.closeSettingsBtn.addEventListener('click', () => ui.showScreen(screens.home, screens));
-        elements.historyLink.addEventListener('click', showHistory);
-        elements.closeHistoryBtn.addEventListener('click', () => ui.showScreen(screens.settings, screens));
         elements.clearHistoryBtn.addEventListener('click', clearHistory);
         elements.exportCsvBtn.addEventListener('click', exportHistoryAsCSV);
         elements.exportJsonBtn.addEventListener('click', exportHistoryAsJSON);
@@ -123,6 +138,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Logica di Navigazione
+    function navigateTo(screenName) {
+        // Nasconde tutte le schermate
+        Object.values(screens).forEach(screen => screen.classList.remove('active'));
+        
+        // Mostra la schermata richiesta
+        if (screens[screenName]) {
+            screens[screenName].classList.add('active');
+        }
+
+        // Aggiorna il titolo dell'header
+        elements.headerTitle.innerHTML = screenTitles[screenName] || 'SplitTicket';
+
+        // Aggiorna lo stato attivo della barra inferiore
+        elements.bottomNavButtons.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.screen === screenName);
+        });
+
+        // Carica i dati se si va allo storico
+        if (screenName === 'history') {
+            loadHistory();
+        }
+    }
+
+    function toggleSideMenu() {
+        elements.sideMenu.classList.toggle('open');
+        elements.sideMenuOverlay.classList.toggle('visible');
+    }
+
     function handleCategoryChange(e) {
         const selectedCategory = e.target.value;
         elements.itemNonVoucherCheckbox.checked = appConfig.NON_VOUCHER_CATEGORIES.includes(selectedCategory);
@@ -133,40 +177,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const newPartnerVoucher = parseFloat(elements.settingPartnerVoucherValue.value);
         
         if (isNaN(newUserVoucher) || isNaN(newPartnerVoucher) || newUserVoucher < 0 || newPartnerVoucher < 0) {
-            alert("I valori dei buoni non sono validi.");
-            return;
+            alert("I valori dei buoni non sono validi."); return;
         }
-
-        const newCategories = elements.settingCategories.value.split(',').map(s => s.trim()).filter(Boolean);
-        const newNonVoucherCategories = elements.settingNonVoucherCategories.value.split(',').map(s => s.trim()).filter(Boolean);
 
         const newConfig = {
             ...appConfig,
             VOUCHER_VALUE_USER: newUserVoucher,
             VOUCHER_VALUE_PARTNER: newPartnerVoucher,
-            CATEGORIES: newCategories,
-            NON_VOUCHER_CATEGORIES: newNonVoucherCategories
+            CATEGORIES: elements.settingCategories.value.split(',').map(s => s.trim()).filter(Boolean),
+            NON_VOUCHER_CATEGORIES: elements.settingNonVoucherCategories.value.split(',').map(s => s.trim()).filter(Boolean)
         };
 
         if (configManager.saveConfig(newConfig)) {
-            appConfig = newConfig; // Aggiorna la configurazione in memoria
-            applyConfig(); // Riapplica la configurazione all'UI
-            alert("Impostazioni salvate con successo!");
-            ui.showScreen(screens.home, screens);
+            appConfig = newConfig;
+            applyConfig();
+            alert("Impostazioni salvate!");
+            navigateTo('home');
         } else {
-            alert("Errore durante il salvataggio delle impostazioni.");
+            alert("Errore durante il salvataggio.");
         }
     }
 
-    // Funzioni Logiche
+    // Funzioni Logiche Principali
     function addItemManually() {
         const name = elements.itemNameInput.value.trim();
         const price = parseFloat(elements.itemPriceInput.value);
-        const category = elements.itemCategorySelect.value;
-        const isNonVoucher = elements.itemNonVoucherCheckbox.checked;
-
         if (name && !isNaN(price) && price > 0) {
-            addItemToCart({ name, price, quantity: 1, category, isNonVoucher });
+            addItemToCart({ name, price, quantity: 1, category: elements.itemCategorySelect.value, isNonVoucher: elements.itemNonVoucherCheckbox.checked });
             elements.itemNameInput.value = '';
             elements.itemPriceInput.value = '';
             elements.itemNameInput.focus();
@@ -176,12 +213,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function addItemToCart(item) {
-        const existingItem = cart.find(cartItem =>
-            cartItem.name.toLowerCase() === item.name.toLowerCase() &&
-            cartItem.isNonVoucher === item.isNonVoucher
-        );
+        const existingItem = cart.find(ci => ci.name.toLowerCase() === item.name.toLowerCase() && ci.isNonVoucher === item.isNonVoucher);
         if (existingItem) {
-            existingItem.quantity += 1;
+            existingItem.quantity++;
         } else {
             cart.push({ id: Date.now(), ...item });
         }
@@ -201,67 +235,43 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initScanner() {
-        if (typeof ZXing === 'undefined') {
-            console.error("ZXing library not loaded yet.");
-            return;
-        }
+        if (typeof ZXing === 'undefined') { console.error("ZXing library not loaded."); return; }
         const hints = new Map();
-        const formats = [
-            ZXing.BarcodeFormat.EAN_13,
-            ZXing.BarcodeFormat.EAN_8,
-            ZXing.BarcodeFormat.UPC_A,
-            ZXing.BarcodeFormat.UPC_E
-        ];
-        hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
+        hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [ZXing.BarcodeFormat.EAN_13, ZXing.BarcodeFormat.EAN_8]);
         barcodeReader = new ZXing.BrowserMultiFormatReader(hints);
-        console.log("Scanner initialized successfully.");
+        console.log("Scanner initialized.");
     }
 
     async function startScanner() {
-        if (!barcodeReader) {
-            alert("Lo scanner non è ancora pronto. Riprova tra un istante.");
-            return;
-        }
-
+        if (!barcodeReader) { alert("Scanner non pronto."); return; }
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
             elements.scannerVideo.srcObject = stream;
             elements.scannerVideo.play();
-            ui.showScreen(screens.scanner, screens);
-            elements.scannerFeedback.textContent = 'Inquadra il codice a barre al centro del riquadro.';
-
+            navigateTo('scanner');
+            elements.scannerFeedback.textContent = 'Inquadra il codice...';
             barcodeReader.decodeFromStream(elements.scannerVideo, stream, (result, err) => {
-                if (result) {
-                    handleBarcodeResult(result.getText());
-                }
-                if (err && !(err instanceof ZXing.NotFoundException)) {
-                    console.error(err);
-                    elements.scannerFeedback.textContent = 'Scansione fallita. Prova con più luce e metti a fuoco.';
-                }
+                if (result) handleBarcodeResult(result.getText());
+                if (err && !(err instanceof ZXing.NotFoundException)) console.error(err);
             });
         } catch (error) {
-            console.error('Errore accesso fotocamera:', error);
-            alert('Impossibile accedere alla fotocamera. Assicurati di aver dato i permessi.');
-            ui.showScreen(screens.home, screens);
+            console.error('Errore fotocamera:', error);
+            alert('Impossibile accedere alla fotocamera.');
+            navigateTo('home');
         }
     }
 
     function stopScanner() {
-        if (barcodeReader) {
-            barcodeReader.reset();
-        }
+        if (barcodeReader) barcodeReader.reset();
         const stream = elements.scannerVideo.srcObject;
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-        }
+        if (stream) stream.getTracks().forEach(track => track.stop());
         elements.scannerVideo.srcObject = null;
-        ui.showScreen(screens.home, screens);
+        navigateTo('home');
     }
 
     async function handleBarcodeResult(barcode) {
         stopScanner();
         alert('Ricerca prodotto in corso...');
-
         let productName = `Prodotto ${barcode}`;
         try {
             const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
@@ -271,14 +281,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     productName = data.product.product_name;
                 }
             }
-        } catch (error) {
-            console.error("Errore nel recupero da Open Food Facts:", error);
-        }
-
-        const name = prompt(`Codice a barre rilevato: ${barcode}\nInserisci il nome del prodotto:`, productName);
+        } catch (error) { console.error("Errore Open Food Facts:", error); }
+        const name = prompt(`Nome prodotto:`, productName);
         if (name) {
-            const priceStr = prompt(`Inserisci il prezzo per "${name}":`);
-            const price = parseFloat(priceStr);
+            const price = parseFloat(prompt(`Inserisci il prezzo per "${name}":`));
             if (!isNaN(price) && price > 0) {
                 addItemToCart({ name, price, quantity: 1, category: 'Generico', isNonVoucher: false, barcode });
             } else {
@@ -289,104 +295,68 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function optimizeAndShowResults() {
         if (cart.length === 0) return;
-
-        const allItems = cart.flatMap(item =>
-            Array(item.quantity).fill({ name: item.name, price: item.price, isNonVoucher: item.isNonVoucher })
-        );
-
+        const allItems = cart.flatMap(item => Array(item.quantity).fill({ ...item }));
         const voucherItems = allItems.filter(item => !item.isNonVoucher);
         const nonVoucherItems = allItems.filter(item => item.isNonVoucher);
-
-        const result = optimizer.optimizeSplit(
-            voucherItems,
-            appConfig.VOUCHER_VALUE_USER,
-            appConfig.VOUCHER_COUNT_USER,
-            appConfig.VOUCHER_VALUE_PARTNER,
-            appConfig.VOUCHER_COUNT_PARTNER
-        );
-
+        const result = optimizer.optimizeSplit(voucherItems, appConfig.VOUCHER_VALUE_USER, appConfig.VOUCHER_COUNT_USER, appConfig.VOUCHER_VALUE_PARTNER, appConfig.VOUCHER_COUNT_PARTNER);
         const nonVoucherTotal = nonVoucherItems.reduce((sum, item) => sum + item.price, 0);
-        const nonVoucherSplit = nonVoucherTotal / 2;
-
-        result.user.cashToPay += nonVoucherSplit;
-        result.partner.cashToPay += nonVoucherSplit;
+        result.user.cashToPay += nonVoucherTotal / 2;
+        result.partner.cashToPay += nonVoucherTotal / 2;
         result.totalCash += nonVoucherTotal;
-        
         result.nonVoucherItems = optimizer.groupItems(nonVoucherItems);
         result.nonVoucherTotal = nonVoucherTotal;
-        
         currentOptimizationResult = result;
         ui.displayResults(result, appConfig);
-        ui.showScreen(screens.result, screens);
+        navigateTo('result');
     }
 
     async function saveResultToHistory() {
-        if (currentOptimizationResult) {
-            try {
-                await db.saveExpense(currentOptimizationResult);
-                alert('Spesa salvata nello storico!');
-                cart = [];
-                updateCartView();
-                ui.showScreen(screens.home, screens);
-            } catch (error) {
-                console.error('Errore nel salvataggio:', error);
-                alert('Errore durante il salvataggio della spesa.');
-            }
+        if (!currentOptimizationResult) return;
+        try {
+            await db.saveExpense(currentOptimizationResult);
+            alert('Spesa salvata!');
+            cart = [];
+            updateCartView();
+            navigateTo('home');
+        } catch (error) {
+            alert('Errore durante il salvataggio.');
         }
     }
 
-    async function showHistory() {
+    async function loadHistory() {
         try {
             const history = await db.getExpenses();
             ui.renderHistory(history, appConfig.CURRENCY_SYMBOL);
-            ui.showScreen(screens.history, screens);
-        } catch (error) {
-            console.error('Errore nel caricamento dello storico:', error);
-        }
+        } catch (error) { console.error('Errore caricamento storico:', error); }
     }
 
     async function clearHistory() {
-        if (confirm('Sei sicuro di voler cancellare tutto lo storico? L\'azione è irreversibile.')) {
+        if (confirm('Sei sicuro di voler cancellare tutto lo storico?')) {
             await db.clearHistory();
-            showHistory(); // Ricarica la vista vuota
+            loadHistory();
         }
     }
 
     function exportHistoryAs(format) {
         db.getExpenses().then(history => {
-            if (history.length === 0) {
-                alert('Lo storico è vuoto.');
-                return;
-            }
+            if (history.length === 0) { alert('Lo storico è vuoto.'); return; }
             let dataStr, filename, type;
             if (format === 'json') {
                 dataStr = JSON.stringify(history, null, 2);
                 filename = 'splitticket_history.json';
                 type = 'application/json';
-            } else { // CSV
-                const headers = 'Data,Totale,Coperto da Te,Coperto da Partner,Resto\n';
-                const rows = history.map(e => 
-                    [
-                        new Date(e.date).toLocaleString('it-IT'),
-                        e.grandTotal.toFixed(2),
-                        e.user.cashToPay.toFixed(2),
-                        e.partner.cashToPay.toFixed(2),
-                        (e.user.cashToPay + e.partner.cashToPay).toFixed(2)
-                    ].join(',')
-                ).join('\n');
+            } else {
+                const headers = 'Data,Totale,Tua Parte,Parte Partner,Totale Contanti\n';
+                const rows = history.map(e => [new Date(e.date).toLocaleString('it-IT'), e.grandTotal.toFixed(2), e.user.cashToPay.toFixed(2), e.partner.cashToPay.toFixed(2), e.totalCash.toFixed(2)].join(',')).join('\n');
                 dataStr = headers + rows;
                 filename = 'splitticket_history.csv';
                 type = 'text/csv';
             }
-            
             const blob = new Blob([dataStr], { type });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
+            a.href = url; a.download = filename;
             a.click();
-            document.body.removeChild(a);
             URL.revokeObjectURL(url);
         });
     }
@@ -395,14 +365,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function exportHistoryAsJSON() { exportHistoryAs('json'); }
 
     function installPWA() {
-        if (deferredInstallPrompt) {
-            deferredInstallPrompt.prompt();
-            deferredInstallPrompt.userChoice.then((choiceResult) => {
-                if (choiceResult.outcome === 'accepted') {
-                    console.log('User accepted the A2HS prompt');
-                }
-                deferredInstallPrompt = null;
-            });
-        }
+        if (deferredInstallPrompt) deferredInstallPrompt.prompt();
     }
+
+    // Avvia l'app
+    init();
 });
