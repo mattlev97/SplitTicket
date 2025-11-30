@@ -143,12 +143,13 @@ button {
 .add-item-actions {
     display: flex;
     width: 100%;
-    gap: 0.5rem;
 }
 
 .add-item-actions #add-item-btn {
     flex-grow: 1;
     background-color: var(--primary-color);
+    color: white;
+    font-weight: bold;
 }
 
 .checkbox-container {
@@ -158,6 +159,25 @@ button {
     width: 100%;
     font-size: 0.9rem;
 }
+
+.footer-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+#optimize-btn {
+    flex-grow: 1;
+    background-color: #f0f0f0;
+    color: var(--text-color);
+}
+
+#scan-barcode-btn {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.75rem;
+    background-color: #fff;
+}
+
 
 /* Carrello */
 #cart-items {
