@@ -180,6 +180,11 @@ button {
     background-color: #fff;
     padding-top: calc(0.75rem - 1px);
     padding-bottom: calc(0.75rem - 1px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    line-height: 1;
 }
 
 
