@@ -79,8 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         applyConfig();
         updateCartView();
         navigateTo('home'); // Imposta la schermata iniziale
-        
-        window.addEventListener('load', initScanner);
+        initScanner();
     }
     
     function applyConfig() {
@@ -243,11 +242,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initScanner() {
-        if (typeof ZXing === 'undefined') { console.error("ZXing library not loaded."); return; }
-        const hints = new Map();
-        hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [ZXing.BarcodeFormat.EAN_13, ZXing.BarcodeFormat.EAN_8]);
-        barcodeReader = new ZXing.BrowserMultiFormatReader(hints);
-        console.log("Scanner initialized.");
+        if (typeof ZXing === 'undefined') {
+            console.error("ZXing library not loaded.");
+            elements.scanBarcodeBtn.disabled = true;
+            elements.scanBarcodeBtn.style.cursor = 'not-allowed';
+            elements.scanBarcodeBtn.title = "Funzione scanner non disponibile. Controlla la connessione internet.";
+            return;
+        }
+        try {
+            const hints = new Map();
+            hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [ZXing.BarcodeFormat.EAN_13, ZXing.BarcodeFormat.EAN_8]);
+            barcodeReader = new ZXing.BrowserMultiFormatReader(hints);
+            console.log("Scanner initialized.");
+        } catch (error) {
+            console.error("Failed to initialize scanner:", error);
+            elements.scanBarcodeBtn.disabled = true;
+            elements.scanBarcodeBtn.style.cursor = 'not-allowed';
+            elements.scanBarcodeBtn.title = "Impossibile avviare lo scanner.";
+        }
     }
 
     async function startScanner() {
