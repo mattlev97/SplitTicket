@@ -65,10 +65,23 @@ body {
     gap: 0.5rem;
 }
 
+.header-left > div {
+    display: flex;
+    flex-direction: column;
+}
+
 #header-title {
     font-size: 2.25rem;
     font-weight: 700;
     color: var(--text-color);
+    line-height: 1;
+}
+
+#header-subtitle {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #777;
+    margin-top: 2px;
 }
 
 #header-title .ticket-part {

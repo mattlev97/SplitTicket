@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sideMenuLinks: document.querySelectorAll('.side-menu-link'),
         bottomNavButtons: document.querySelectorAll('.nav-btn'),
         headerTitle: document.getElementById('header-title'),
+        headerSubtitle: document.getElementById('header-subtitle'),
 
         // Schermata Home
         appVersionSpan: document.getElementById('app-version'),
@@ -150,6 +151,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Aggiorna il titolo dell'header
         elements.headerTitle.innerHTML = screenTitles[screenName] || 'SplitTicket';
+
+        // Mostra/nascondi il sottotitolo
+        if (screenName === 'home' || screenName === 'history' || screenName === 'settings') {
+            elements.headerSubtitle.style.display = 'block';
+        } else {
+            elements.headerSubtitle.style.display = 'none';
+        }
 
         // Aggiorna lo stato attivo della barra inferiore
         elements.bottomNavButtons.forEach(btn => {
