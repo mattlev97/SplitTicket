@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const elements = {
         // Schermata Home
+        appVersionSpan: document.getElementById('app-version'),
         itemCategorySelect: document.getElementById('item-category'),
         itemNameInput: document.getElementById('item-name'),
         itemPriceInput: document.getElementById('item-price'),
@@ -71,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function applyConfig() {
         populateCategories();
         populateSettingsForm();
+        elements.appVersionSpan.textContent = `v${appConfig.APP_VERSION}`;
     }
 
     function populateCategories() {

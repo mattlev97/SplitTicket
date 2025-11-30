@@ -58,7 +58,12 @@ header h1, header h2 {
 /* Stili specifici per l'header della Home */
 #home-header {
     background-color: #fff;
-    justify-content: flex-start;
+    justify-content: space-between;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
 }
 
@@ -70,6 +75,12 @@ header h1, header h2 {
 
 #home-header .ticket-part {
     color: var(--brand-color);
+}
+
+.app-version-tag {
+    font-size: 0.75rem;
+    color: #999;
+    font-weight: 500;
 }
 
 
