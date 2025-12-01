@@ -2,7 +2,7 @@
 // File principale che gestisce la logica dell'applicazione e gli eventi.
 
 // Importa le funzioni per le notifiche toast
-import { showLoading, dismissToast } from './utils/toast.js';
+import { showLoading, dismissToast, showSuccess, showError } from './utils/toast.js';
 import configManager from './config.js';
 import db from './db.js';
 import optimizer from './optimizer.js';
@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let appConfig = configManager.loadConfig();
     let deferredInstallPrompt = null;
     let isScannerReady = false;
+    let scannerContext = 'cart'; // 'cart' o 'archive'
 
     // Elementi del DOM
     const screens = {
@@ -22,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
         scanner: document.getElementById('scanner-screen'),
         result: document.getElementById('result-screen'),
         history: document.getElementById('history-screen'),
+        archive: document.getElementById('archive-screen'),
         settings: document.getElementById('settings-screen'),
     };
 
@@ -60,6 +62,10 @@ document.addEventListener('DOMContentLoaded', () => {
         exportCsvBtn: document.getElementById('export-csv-btn'),
         exportJsonBtn: document.getElementById('export-json-btn'),
         clearHistoryBtn: document.getElementById('clear-history-btn'),
+
+        // Schermata Archivio
+        archiveList: document.getElementById('archive-list'),
+        addToArchiveBtn: document.getElementById('add-to-archive-btn'),
         
         // Schermata Impostazioni
         installPwaBtn: document.getElementById('install-pwa-btn'),
@@ -79,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         home: 'Split<span class="ticket-part">Ticket</span>',
         history: 'Split<span class="ticket-part">Ticket</span>',
         settings: 'Split<span class="ticket-part">Ticket</span>',
+        archive: 'Archivio Prodotti',
         result: 'Risultati',
         scanner: 'Scanner'
     };
@@ -131,7 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         elements.addItemBtn.addEventListener('click', addItemManually);
         elements.optimizeBtn.addEventListener('click', optimizeAndShowResults);
-        elements.scanBarcodeBtn.addEventListener('click', startScanner);
+        elements.scanBarcodeBtn.addEventListener('click', startScannerForCart);
+        elements.addToArchiveBtn.addEventListener('click', startScannerForArchive);
         elements.closeScannerBtn.addEventListener('click', stopScanner);
         elements.closeResultBtn.addEventListener('click', () => navigateTo('home'));
         elements.saveHistoryBtn.addEventListener('click', saveResultToHistory);
@@ -156,9 +164,10 @@ document.addEventListener('DOMContentLoaded', () => {
         Object.values(screens).forEach(screen => screen.classList.remove('active'));
         if (screens[screenName]) screens[screenName].classList.add('active');
         elements.headerTitle.innerHTML = screenTitles[screenName] || 'SplitTicket';
-        elements.headerSubtitle.style.display = ['home', 'history', 'settings'].includes(screenName) ? 'block' : 'none';
+        elements.headerSubtitle.style.display = ['home', 'history', 'settings', 'archive'].includes(screenName) ? 'block' : 'none';
         elements.bottomNavButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.screen === screenName));
         if (screenName === 'history') loadHistory();
+        if (screenName === 'archive') loadArchive();
         if (screenName === 'settings') populateSettingsForm();
     }
 
@@ -175,10 +184,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const newUserVoucher = parseFloat(elements.settingUserVoucherValue.value);
         const newPartnerVoucher = parseFloat(elements.settingPartnerVoucherValue.value);
         if (isNaN(newUserVoucher) || isNaN(newPartnerVoucher) || newUserVoucher < 0 || newPartnerVoucher < 0) {
-            alert("I valori dei buoni non sono validi."); return;
+            showError("I valori dei buoni non sono validi."); return;
         }
         
-        // Le categorie sono già aggiornate nell'oggetto appConfig dalle funzioni add/delete
         const newConfig = {
             ...appConfig,
             VOUCHER_VALUE_USER: newUserVoucher,
@@ -188,10 +196,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (configManager.saveConfig(newConfig)) {
             appConfig = newConfig;
             applyConfig();
-            alert("Impostazioni salvate!");
+            showSuccess("Impostazioni salvate!");
             navigateTo('home');
         } else {
-            alert("Errore durante il salvataggio.");
+            showError("Errore durante il salvataggio.");
         }
     }
 
@@ -204,7 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.itemPriceInput.value = '';
             elements.itemNameInput.focus();
         } else {
-            alert('Inserisci un nome e un prezzo validi.');
+            showError('Inserisci un nome e un prezzo validi.');
         }
     }
 
@@ -237,9 +245,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function startScannerForCart() {
+        scannerContext = 'cart';
+        startScanner();
+    }
+
+    function startScannerForArchive() {
+        scannerContext = 'archive';
+        startScanner();
+    }
+
     function startScanner() {
         if (!isScannerReady) {
-            alert("Scanner non pronto.");
+            showError("Scanner non pronto.");
             return;
         }
         navigateTo('scanner');
@@ -249,18 +267,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 type: "LiveStream",
                 target: elements.scannerContainer,
                 constraints: { width: 640, height: 480, facingMode: "environment" },
-                area: { // Limita la scansione all'area centrale
-                    top: "30%",
-                    right: "10%",
-                    left: "10%",
-                    bottom: "30%"
-                }
+                area: { top: "30%", right: "10%", left: "10%", bottom: "30%" }
             },
             decoder: { readers: ["ean_reader"] },
         }, (err) => {
             if (err) {
                 console.error(err);
-                alert("Errore durante l'avvio dello scanner. Controlla i permessi della fotocamera.");
+                showError("Errore avvio scanner. Controlla i permessi della fotocamera.");
                 stopScanner();
                 return;
             }
@@ -276,56 +289,50 @@ document.addEventListener('DOMContentLoaded', () => {
             Quagga.offDetected(handleBarcodeResult);
             Quagga.stop();
         }
-        navigateTo('home');
+        const targetScreen = scannerContext === 'archive' ? 'archive' : 'home';
+        navigateTo(targetScreen);
     }
 
     async function handleBarcodeResult(quaggaData) {
         const barcode = quaggaData.codeResult.code;
         stopScanner();
         
-        const toastId = showLoading('Ricerca prodotto in corso...');
-        let productNameForPrompt = '';
-
+        const toastId = showLoading('Ricerca prodotto...');
+        
         try {
             const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
-            if (response.ok) {
-                const productData = await response.json();
-                if (productData.status === 1 && productData.product) {
-                    const product = productData.product;
-                    let foundName = product.product_name_it || product.product_name || product.generic_name_it || product.generic_name || null;
+            if (!response.ok) throw new Error('Network response was not ok');
+            
+            const productData = await response.json();
+            dismissToast(toastId);
 
-                    if (foundName) {
-                        foundName = foundName.trim();
-                        if (product.brands && !foundName.toLowerCase().includes(product.brands.toLowerCase())) {
-                            productNameForPrompt = `${product.brands} - ${foundName}`;
-                        } else {
-                            productNameForPrompt = foundName;
-                        }
-                    }
+            if (productData.status !== 1 || !productData.product) {
+                showError(`Prodotto con codice ${barcode} non trovato.`);
+                return;
+            }
+
+            const product = productData.product;
+            const name = product.product_name_it || product.product_name || 'Senza nome';
+            const brands = product.brands || '';
+            const image_url = product.image_front_url || '';
+
+            if (scannerContext === 'archive') {
+                await db.saveProduct({ barcode, name, brands, image_url });
+                showSuccess(`"${name}" aggiunto all'archivio!`);
+                loadArchive(); // Ricarica la vista archivio
+            } else { // 'cart' context
+                const priceStr = prompt(`Inserisci il prezzo per "${name}":`);
+                const price = parseFloat(priceStr);
+                if (!isNaN(price) && price > 0) {
+                    addItemToCart({ name, price, quantity: 1, category: 'Generico', isNonVoucher: false, barcode });
+                } else if (priceStr !== null) {
+                    showError('Prezzo non valido.');
                 }
             }
         } catch (error) {
-            console.error("Errore durante la ricerca su Open Food Facts:", error);
-            dismissToast(toastId); // Chiudi il toast di caricamento
-            alert("Errore di rete. Impossibile contattare il database dei prodotti. Controlla la tua connessione e riprova.");
-            return;
-        }
-
-        dismissToast(toastId); // Chiudi il toast di caricamento
-
-        if (productNameForPrompt === '') {
-            alert(`Prodotto con codice ${barcode} non trovato nel database. Inseriscilo manualmente.`);
-        }
-
-        const name = prompt(`Nome prodotto:`, productNameForPrompt);
-        if (name) {
-            const priceStr = prompt(`Inserisci il prezzo per "${name}":`);
-            const price = parseFloat(priceStr);
-            if (!isNaN(price) && price > 0) {
-                addItemToCart({ name, price, quantity: 1, category: 'Generico', isNonVoucher: false, barcode });
-            } else if (priceStr !== null) {
-                alert('Prezzo non valido.');
-            }
+            console.error("Errore API Open Food Facts:", error);
+            dismissToast(toastId);
+            showError("Errore di rete. Impossibile cercare il prodotto.");
         }
     }
 
@@ -350,12 +357,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!currentOptimizationResult) return;
         try {
             await db.saveExpense(currentOptimizationResult);
-            alert('Spesa salvata!');
+            showSuccess('Spesa salvata!');
             cart = [];
             updateCartView();
             navigateTo('home');
         } catch (error) {
-            alert('Errore durante il salvataggio.');
+            showError('Errore durante il salvataggio.');
         }
     }
 
@@ -373,9 +380,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function loadArchive() {
+        try {
+            const products = await db.getProducts();
+            ui.renderArchive(products, elements.archiveList, deleteFromArchive);
+        } catch (error) { console.error('Errore caricamento archivio:', error); }
+    }
+
+    async function deleteFromArchive(barcode) {
+        if (confirm('Rimuovere questo prodotto dall\'archivio?')) {
+            try {
+                await db.deleteProduct(barcode);
+                showSuccess('Prodotto rimosso.');
+                loadArchive();
+            } catch (error) {
+                showError('Errore durante la rimozione.');
+            }
+        }
+    }
+
     function exportHistoryAs(format) {
         db.getExpenses().then(history => {
-            if (history.length === 0) { alert('Lo storico è vuoto.'); return; }
+            if (history.length === 0) { showError('Lo storico è vuoto.'); return; }
             let dataStr, filename, type;
             if (format === 'json') {
                 dataStr = JSON.stringify(history, null, 2);
@@ -404,7 +430,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (deferredInstallPrompt) deferredInstallPrompt.prompt();
     }
 
-    // Funzioni per la gestione delle categorie
     function renderCategoryCards(container, categories, type) {
         container.innerHTML = '';
         categories.forEach(category => {

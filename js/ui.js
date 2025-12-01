@@ -130,6 +130,34 @@ const ui = {
             `;
             container.appendChild(el);
         });
+    },
+
+    /**
+     * Renderizza i prodotti nell'archivio.
+     * @param {Array} products - L'array dei prodotti archiviati.
+     * @param {HTMLElement} container - L'elemento contenitore.
+     * @param {Function} onRemove - Callback da eseguire alla rimozione di un prodotto.
+     */
+    renderArchive(products, container, onRemove) {
+        container.innerHTML = '';
+        if (products.length === 0) {
+            container.innerHTML = '<p>Nessun prodotto in archivio. Usa il tasto + per aggiungerne.</p>';
+            return;
+        }
+        products.forEach(product => {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'archive-card';
+            cardEl.innerHTML = `
+                <img src="${product.image_url || 'icons/icon-192x192.png'}" alt="${product.name}" class="archive-card-img">
+                <div class="archive-card-info">
+                    <h4>${product.name}</h4>
+                    <p>${product.brands || 'Marca non disponibile'}</p>
+                </div>
+                <button data-barcode="${product.barcode}" class="remove-item-btn">🗑️</button>
+            `;
+            cardEl.querySelector('.remove-item-btn').addEventListener('click', () => onRemove(product.barcode));
+            container.appendChild(cardEl);
+        });
     }
 };
 

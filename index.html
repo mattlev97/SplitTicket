@@ -22,6 +22,7 @@
         <nav>
             <a href="#" class="side-menu-link" data-screen="home">🛒 Carrello</a>
             <a href="#" class="side-menu-link" data-screen="history">🧾 Storico</a>
+            <a href="#" class="side-menu-link" data-screen="archive">📦 Archivio</a>
             <a href="#" class="side-menu-link" data-screen="settings">⚙️ Impostazioni</a>
         </nav>
     </div>
@@ -119,6 +120,14 @@
                     <button id="clear-history-btn" class="danger-btn">Svuota Storico</button>
                 </div>
             </div>
+
+            <!-- Schermata Archivio Prodotti -->
+            <div id="archive-screen" class="screen">
+                <div id="archive-list">
+                    <!-- I prodotti archiviati verranno caricati qui -->
+                </div>
+                <button id="add-to-archive-btn" class="fab">+</button>
+            </div>
             
             <!-- Schermata Impostazioni -->
             <div id="settings-screen" class="screen">
@@ -161,6 +170,9 @@
             </button>
             <button class="nav-btn" data-screen="home">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            </button>
+            <button class="nav-btn" data-screen="archive">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
             </button>
             <button class="nav-btn" data-screen="settings">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>

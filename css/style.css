@@ -376,6 +376,71 @@ button {
 .history-item p { margin-bottom: 0.5rem; }
 .history-footer { display: flex; gap: 0.5rem; }
 
+/* Archivio Prodotti */
+#archive-screen {
+    position: relative;
+    padding-bottom: 80px; /* Spazio per il FAB */
+}
+#archive-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.archive-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 0.75rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.archive-card-img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    background-color: #f0f0f0;
+    flex-shrink: 0;
+}
+.archive-card-info {
+    flex-grow: 1;
+}
+.archive-card-info h4 {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+.archive-card-info p {
+    font-size: 0.8rem;
+    color: #666;
+}
+.archive-card .remove-item-btn {
+    background: none;
+    color: #ff6b6b;
+    border: none;
+    font-size: 1.5rem;
+    padding: 0.5rem;
+}
+.fab {
+    position: fixed;
+    bottom: 110px; /* Sopra la barra di navigazione */
+    right: 2rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: var(--brand-color);
+    color: white;
+    font-size: 2rem;
+    line-height: 60px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 100;
+    border: none;
+    padding: 0;
+}
+
+
 /* Impostazioni */
 #settings-screen { justify-content: space-between; }
 #settings-form { flex-grow: 1; overflow-y: auto; }
