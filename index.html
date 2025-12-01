@@ -183,14 +183,16 @@
         </main>
     </div>
 
-    <!-- Libreria per lo scanner di codici a barre via CDN -->
+    <!-- Librerie via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sonner@1.5.0/dist/index.global.min.js"></script>
+    <script>const { toast } = sonner; window.toast = toast;</script>
     
-    <!-- Script dell'applicazione -->
-    <script src="js/config.js"></script>
-    <script src="js/db.js"></script>
-    <script src="js/optimizer.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/app.js"></script>
+    <!-- Script dell'applicazione (come moduli) -->
+    <script src="js/config.js" type="module"></script>
+    <script src="js/db.js" type="module"></script>
+    <script src="js/optimizer.js" type="module"></script>
+    <script src="js/ui.js" type="module"></script>
+    <script src="js/app.js" type="module"></script>
 </body>
 </html>

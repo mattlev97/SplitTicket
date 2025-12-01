@@ -1,6 +1,9 @@
 // js/app.js
 // File principale che gestisce la logica dell'applicazione e gli eventi.
 
+// Importa le funzioni per le notifiche toast
+import { showLoading, dismissToast } from './utils/toast.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     // Stato dell'applicazione
     let cart = [];
@@ -269,8 +272,8 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleBarcodeResult(quaggaData) {
         const barcode = quaggaData.codeResult.code;
         stopScanner();
-        alert('Ricerca prodotto in corso...');
         
+        const toastId = showLoading('Ricerca prodotto in corso...');
         let productNameForPrompt = '';
 
         try {
@@ -293,9 +296,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error("Errore durante la ricerca su Open Food Facts:", error);
+            dismissToast(toastId); // Chiudi il toast di caricamento
             alert("Errore di rete. Impossibile contattare il database dei prodotti. Controlla la tua connessione e riprova.");
-            return; // Interrompe l'esecuzione per evitare di chiedere l'input all'utente
+            return;
         }
+
+        dismissToast(toastId); // Chiudi il toast di caricamento
 
         if (productNameForPrompt === '') {
             alert(`Prodotto con codice ${barcode} non trovato nel database. Inseriscilo manualmente.`);
