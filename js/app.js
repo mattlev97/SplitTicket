@@ -275,8 +275,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
             if (response.ok) {
                 const productData = await response.json();
-                if (productData.status === 1 && productData.product && productData.product.product_name) {
-                    productName = productData.product.product_name;
+                if (productData.status === 1 && productData.product) {
+                    const product = productData.product;
+                    // Tenta di trovare il nome migliore, dando priorità all'italiano
+                    let foundName = product.product_name_it || product.product_name || product.generic_name_it || product.generic_name || null;
+
+                    if (foundName) {
+                        foundName = foundName.trim();
+                        // Aggiunge il brand se esiste e non è già parte del nome
+                        if (product.brands && !foundName.toLowerCase().includes(product.brands.toLowerCase())) {
+                            productName = `${product.brands} - ${foundName}`;
+                        } else {
+                            productName = foundName;
+                        }
+                    }
                 }
             }
         } catch (error) { console.error("Errore Open Food Facts:", error); }
