@@ -1,0 +1,11 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+    <rect width="512" height="512" fill="white"/>
+    <text x="50%" y="45%" font-family="Arial, Helvetica, sans-serif" font-size="200" font-weight="bold" text-anchor="middle" dominant-baseline="central">
+        <tspan fill="black">S</tspan><tspan fill="#E63946">T</tspan>
+    </text>
+    <g transform="translate(136 280) scale(10)" fill="none" stroke="#E0E0E0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="21" r="1" />
+        <circle cx="19" cy="21" r="1" />
+        <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.53h9.72a2 2 0 0 0 2-1.53l1.66-7.43H5.12" />
+    </g>
+</svg>
