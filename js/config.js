@@ -52,3 +52,5 @@ const configManager = {
         }
     }
 };
+
+export default configManager;

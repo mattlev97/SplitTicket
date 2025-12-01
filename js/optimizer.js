@@ -132,3 +132,5 @@ const optimizer = {
         return Object.values(grouped);
     }
 };
+
+export default optimizer;

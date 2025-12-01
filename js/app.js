@@ -3,6 +3,10 @@
 
 // Importa le funzioni per le notifiche toast
 import { showLoading, dismissToast } from './utils/toast.js';
+import configManager from './config.js';
+import db from './db.js';
+import optimizer from './optimizer.js';
+import ui from './ui.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Stato dell'applicazione
