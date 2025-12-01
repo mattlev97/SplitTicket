@@ -343,6 +343,7 @@ button {
     min-height: 100%;
     width: auto;
     height: auto;
+    z-index: 1;
 }
 .scanner-overlay {
     position: absolute;
@@ -353,6 +354,7 @@ button {
     height: 40%;
     border: 2px solid var(--accent-color);
     box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+    z-index: 10;
 }
 #scanner-feedback { text-align: center; margin-top: 1rem; }
 
