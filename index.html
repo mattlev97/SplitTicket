@@ -130,11 +130,20 @@
                         <input type="number" id="setting-partner-voucher-value" step="0.01" min="0">
                     </div>
                     <div class="settings-group">
-                        <h3>Categorie Prodotti</h3>
-                        <label for="setting-categories">Tutte le categorie (separate da virgola)</label>
-                        <textarea id="setting-categories" rows="5"></textarea>
-                        <label for="setting-non-voucher-categories">Categorie non pagabili con buoni (separate da virgola)</label>
-                        <textarea id="setting-non-voucher-categories" rows="3"></textarea>
+                        <h3>Tutte le Categorie</h3>
+                        <div id="all-categories-container" class="category-cards-container"></div>
+                        <div class="add-category-form">
+                            <input type="text" id="new-category-input" placeholder="Aggiungi categoria/e...">
+                            <button type="button" id="add-category-btn">Aggiungi</button>
+                        </div>
+                    </div>
+                    <div class="settings-group">
+                        <h3>Categorie non pagabili con buoni</h3>
+                        <div id="non-voucher-categories-container" class="category-cards-container"></div>
+                        <div class="add-category-form">
+                            <input type="text" id="new-non-voucher-category-input" placeholder="Aggiungi categoria/e...">
+                            <button type="button" id="add-non-voucher-category-btn">Aggiungi</button>
+                        </div>
                     </div>
                 </form>
                 <button id="install-pwa-btn" style="display: none;">Installa App</button>

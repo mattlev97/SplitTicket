@@ -59,8 +59,12 @@ document.addEventListener('DOMContentLoaded', () => {
         saveSettingsBtn: document.getElementById('save-settings-btn'),
         settingUserVoucherValue: document.getElementById('setting-user-voucher-value'),
         settingPartnerVoucherValue: document.getElementById('setting-partner-voucher-value'),
-        settingCategories: document.getElementById('setting-categories'),
-        settingNonVoucherCategories: document.getElementById('setting-non-voucher-categories'),
+        allCategoriesContainer: document.getElementById('all-categories-container'),
+        newCategoryInput: document.getElementById('new-category-input'),
+        addCategoryBtn: document.getElementById('add-category-btn'),
+        nonVoucherCategoriesContainer: document.getElementById('non-voucher-categories-container'),
+        newNonVoucherCategoryInput: document.getElementById('new-non-voucher-category-input'),
+        addNonVoucherCategoryBtn: document.getElementById('add-non-voucher-category-btn'),
     };
 
     // Mappa dei titoli per le schermate
@@ -101,8 +105,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function populateSettingsForm() {
         elements.settingUserVoucherValue.value = appConfig.VOUCHER_VALUE_USER;
         elements.settingPartnerVoucherValue.value = appConfig.VOUCHER_VALUE_PARTNER;
-        elements.settingCategories.value = appConfig.CATEGORIES.join(', ');
-        elements.settingNonVoucherCategories.value = appConfig.NON_VOUCHER_CATEGORIES.join(', ');
+        renderCategoryCards(elements.allCategoriesContainer, appConfig.CATEGORIES, 'all');
+        renderCategoryCards(elements.nonVoucherCategoriesContainer, appConfig.NON_VOUCHER_CATEGORIES, 'non-voucher');
     }
 
     // Gestione Eventi
@@ -130,6 +134,9 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.installPwaBtn.addEventListener('click', installPWA);
         elements.itemCategorySelect.addEventListener('change', handleCategoryChange);
         elements.saveSettingsBtn.addEventListener('click', saveSettings);
+        
+        elements.addCategoryBtn.addEventListener('click', () => addCategory(elements.newCategoryInput, 'all'));
+        elements.addNonVoucherCategoryBtn.addEventListener('click', () => addCategory(elements.newNonVoucherCategoryInput, 'non-voucher'));
 
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
@@ -145,6 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.headerSubtitle.style.display = ['home', 'history', 'settings'].includes(screenName) ? 'block' : 'none';
         elements.bottomNavButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.screen === screenName));
         if (screenName === 'history') loadHistory();
+        if (screenName === 'settings') populateSettingsForm();
     }
 
     function toggleSideMenu() {
@@ -162,13 +170,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isNaN(newUserVoucher) || isNaN(newPartnerVoucher) || newUserVoucher < 0 || newPartnerVoucher < 0) {
             alert("I valori dei buoni non sono validi."); return;
         }
+        
+        // Le categorie sono già aggiornate nell'oggetto appConfig dalle funzioni add/delete
         const newConfig = {
             ...appConfig,
             VOUCHER_VALUE_USER: newUserVoucher,
             VOUCHER_VALUE_PARTNER: newPartnerVoucher,
-            CATEGORIES: elements.settingCategories.value.split(',').map(s => s.trim()).filter(Boolean),
-            NON_VOUCHER_CATEGORIES: elements.settingNonVoucherCategories.value.split(',').map(s => s.trim()).filter(Boolean)
         };
+
         if (configManager.saveConfig(newConfig)) {
             appConfig = newConfig;
             applyConfig();
@@ -355,6 +364,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function installPWA() {
         if (deferredInstallPrompt) deferredInstallPrompt.prompt();
+    }
+
+    // Funzioni per la gestione delle categorie
+    function renderCategoryCards(container, categories, type) {
+        container.innerHTML = '';
+        categories.forEach(category => {
+            const card = document.createElement('div');
+            card.className = 'category-card';
+            card.textContent = category;
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-category-btn';
+            deleteBtn.innerHTML = '&times;';
+            deleteBtn.onclick = () => deleteCategory(category, type);
+            
+            card.appendChild(deleteBtn);
+            container.appendChild(card);
+        });
+    }
+
+    function addCategory(inputElement, type) {
+        const newCategories = inputElement.value.split(',').map(c => c.trim()).filter(c => c);
+        if (newCategories.length === 0) return;
+
+        const targetArray = type === 'all' ? appConfig.CATEGORIES : appConfig.NON_VOUCHER_CATEGORIES;
+        const container = type === 'all' ? elements.allCategoriesContainer : elements.nonVoucherCategoriesContainer;
+
+        newCategories.forEach(cat => {
+            if (!targetArray.includes(cat)) {
+                targetArray.push(cat);
+            }
+        });
+        
+        inputElement.value = '';
+        renderCategoryCards(container, targetArray, type);
+    }
+
+    function deleteCategory(categoryToDelete, type) {
+        if (type === 'all') {
+            appConfig.CATEGORIES = appConfig.CATEGORIES.filter(c => c !== categoryToDelete);
+            renderCategoryCards(elements.allCategoriesContainer, appConfig.CATEGORIES, 'all');
+        } else {
+            appConfig.NON_VOUCHER_CATEGORIES = appConfig.NON_VOUCHER_CATEGORIES.filter(c => c !== categoryToDelete);
+            renderCategoryCards(elements.nonVoucherCategoriesContainer, appConfig.NON_VOUCHER_CATEGORIES, 'non-voucher');
+        }
     }
 
     init();
