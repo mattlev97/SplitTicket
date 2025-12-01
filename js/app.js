@@ -270,34 +270,43 @@ document.addEventListener('DOMContentLoaded', () => {
         const barcode = quaggaData.codeResult.code;
         stopScanner();
         alert('Ricerca prodotto in corso...');
-        let productName = `Prodotto ${barcode}`;
+        
+        let productNameForPrompt = ''; // Inizia con una stringa vuota
+
         try {
             const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
             if (response.ok) {
                 const productData = await response.json();
                 if (productData.status === 1 && productData.product) {
                     const product = productData.product;
-                    // Tenta di trovare il nome migliore, dando priorità all'italiano
                     let foundName = product.product_name_it || product.product_name || product.generic_name_it || product.generic_name || null;
 
                     if (foundName) {
                         foundName = foundName.trim();
-                        // Aggiunge il brand se esiste e non è già parte del nome
                         if (product.brands && !foundName.toLowerCase().includes(product.brands.toLowerCase())) {
-                            productName = `${product.brands} - ${foundName}`;
+                            productNameForPrompt = `${product.brands} - ${foundName}`;
                         } else {
-                            productName = foundName;
+                            productNameForPrompt = foundName;
                         }
                     }
                 }
             }
-        } catch (error) { console.error("Errore Open Food Facts:", error); }
-        const name = prompt(`Nome prodotto:`, productName);
+        } catch (error) {
+            console.error("Errore durante la ricerca su Open Food Facts:", error);
+        }
+
+        // Se dopo la ricerca il nome è ancora vuoto, avvisa l'utente.
+        if (productNameForPrompt === '') {
+            alert(`Prodotto con codice ${barcode} non trovato nel database. Inseriscilo manualmente.`);
+        }
+
+        const name = prompt(`Nome prodotto:`, productNameForPrompt);
         if (name) {
-            const price = parseFloat(prompt(`Inserisci il prezzo per "${name}":`));
+            const priceStr = prompt(`Inserisci il prezzo per "${name}":`);
+            const price = parseFloat(priceStr);
             if (!isNaN(price) && price > 0) {
                 addItemToCart({ name, price, quantity: 1, category: 'Generico', isNonVoucher: false, barcode });
-            } else {
+            } else if (priceStr !== null) { // Non mostrare l'alert se l'utente preme "Annulla"
                 alert('Prezzo non valido.');
             }
         }
