@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         home: 'Split<span class="ticket-part">Ticket</span>',
         history: 'Split<span class="ticket-part">Ticket</span>',
         settings: 'Split<span class="ticket-part">Ticket</span>',
-        archive: 'Archivio Prodotti',
+        archive: 'Split<span class="ticket-part">Ticket</span>',
         result: 'Risultati',
         scanner: 'Scanner'
     };
