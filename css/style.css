@@ -491,6 +491,59 @@ button {
     background-color: #f0f0f0;
 }
 
+.scores-section h3 {
+    margin-bottom: 0.75rem;
+}
+.scores-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 1rem;
+    text-align: center;
+}
+.score-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+.score-badge {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 16px;
+    min-width: 40px;
+    text-align: center;
+}
+.score-a { background-color: #038141; }
+.score-b { background-color: #85BB2F; }
+.score-c { background-color: #FECB02; }
+.score-d { background-color: #F58220; }
+.score-e { background-color: #E63946; }
+.score-1 { background-color: #00AEEF; }
+.score-2 { background-color: #8DC63F; }
+.score-3 { background-color: #FBB03B; }
+.score-4 { background-color: #ED1C24; }
+
+.nutrition-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.5rem;
+}
+.nutrition-table td {
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.9rem;
+}
+.nutrition-table tr:last-child td {
+    border-bottom: none;
+}
+.nutrition-table td:last-child {
+    text-align: right;
+    font-weight: 500;
+}
+
 
 /* Impostazioni */
 #settings-screen { justify-content: space-between; }

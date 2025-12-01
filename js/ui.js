@@ -177,25 +177,82 @@ const ui = {
             return;
         }
 
-        const name = product.product_name_it || product.product_name || 'Nome non disponibile';
-        const brands = product.brands || 'Marca non disponibile';
-        const imageUrl = product.image_front_url || 'icons/icon-192x192.png';
-        const ingredients = product.ingredients_text_it || product.ingredients_text || 'Non specificati';
-        const quantity = product.quantity || 'Non specificata';
+        // Funzioni helper per estrarre i dati in modo sicuro
+        const getName = (p) => p.product_name_it || p.product_name || 'Nome non disponibile';
+        const getBrands = (p) => p.brands || 'Marca non disponibile';
+        const getImageUrl = (p) => p.image_front_url || 'icons/icon-192x192.png';
+        const getQuantity = (p) => p.quantity || 'Non specificata';
+        const getIngredients = (p) => p.ingredients_text_it || p.ingredients_text || 'Non specificati';
+        const getAllergens = (p) => p.allergens_from_ingredients || 'Nessuno specificato';
+        const getCategories = (p) => p.categories || 'Non specificate';
+        const getPackaging = (p) => p.packaging || 'Non specificato';
+
+        // Helper per creare i badge dei punteggi
+        const renderScore = (label, score) => {
+            if (!score) return '';
+            const scoreClass = `score-${String(score).toLowerCase()}`;
+            return `
+                <div class="score-item">
+                    <strong>${label}:</strong>
+                    <span class="score-badge ${scoreClass}">${String(score).toUpperCase()}</span>
+                </div>
+            `;
+        };
+
+        // Helper per creare le righe della tabella nutrizionale
+        const renderNutrimentRow = (label, value, unit) => {
+            if (value === undefined || value === null) return '';
+            return `<tr><td>${label}</td><td>${parseFloat(value).toFixed(2)} ${unit}</td></tr>`;
+        };
+
+        const nutriments = product.nutriments || {};
 
         const detailHTML = `
             <div class="product-detail-header">
-                <img src="${imageUrl}" alt="${name}">
-                <h2>${name}</h2>
-                <p>${brands}</p>
+                <img src="${getImageUrl(product)}" alt="${getName(product)}">
+                <h2>${getName(product)}</h2>
+                <p>${getBrands(product)} - ${getQuantity(product)}</p>
             </div>
-            <div class="product-detail-section">
-                <h3>Quantità</h3>
-                <p>${quantity}</p>
+
+            <div class="product-detail-section scores-section">
+                <h3>Punteggi</h3>
+                <div class="scores-container">
+                    ${renderScore('Nutri-Score', product.nutriscore_grade)}
+                    ${renderScore('Eco-Score', product.ecoscore_grade)}
+                    ${renderScore('NOVA', product.nova_group)}
+                </div>
             </div>
+
             <div class="product-detail-section">
                 <h3>Ingredienti</h3>
-                <p>${ingredients}</p>
+                <p>${getIngredients(product)}</p>
+            </div>
+
+            <div class="product-detail-section">
+                <h3>Allergeni</h3>
+                <p>${getAllergens(product)}</p>
+            </div>
+
+            <div class="product-detail-section">
+                <h3>Valori Nutrizionali (per 100g)</h3>
+                <table class="nutrition-table">
+                    <tbody>
+                        ${renderNutrimentRow('Energia', nutriments['energy-kcal_100g'], 'kcal')}
+                        ${renderNutrimentRow('Grassi', nutriments.fat_100g, 'g')}
+                        ${renderNutrimentRow('di cui Saturi', nutriments['saturated-fat_100g'], 'g')}
+                        ${renderNutrimentRow('Carboidrati', nutriments.carbohydrates_100g, 'g')}
+                        ${renderNutrimentRow('di cui Zuccheri', nutriments.sugars_100g, 'g')}
+                        ${renderNutrimentRow('Fibre', nutriments.fiber_100g, 'g')}
+                        ${renderNutrimentRow('Proteine', nutriments.proteins_100g, 'g')}
+                        ${renderNutrimentRow('Sale', nutriments.salt_100g, 'g')}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="product-detail-section">
+                <h3>Altre Informazioni</h3>
+                <p><strong>Categorie:</strong> ${getCategories(product)}</p>
+                <p><strong>Packaging:</strong> ${getPackaging(product)}</p>
             </div>
         `;
         container.innerHTML = detailHTML;
