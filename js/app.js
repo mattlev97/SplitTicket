@@ -266,17 +266,31 @@ document.addEventListener('DOMContentLoaded', () => {
         navigateTo('home');
     }
 
-    async function handleBarcodeResult(data) {
-        const barcode = data.codeResult.code;
+    async function handleBarcodeResult(quaggaData) {
+        const barcode = quaggaData.codeResult.code;
         stopScanner();
         alert('Ricerca prodotto in corso...');
         let productName = `Prodotto ${barcode}`;
         try {
             const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
             if (response.ok) {
-                const data = await response.json();
-                if (data.status === 1 && data.product && data.product.product_name) {
-                    productName = data.product.product_name;
+                const productData = await response.json();
+                if (productData.status === 1 && productData.product) {
+                    const product = productData.product;
+                    // Tenta di trovare il nome migliore, dando priorità all'italiano
+                    let foundName = product.product_name_it || product.product_name || product.generic_name_it || product.generic_name || null;
+
+                    if (foundName) {
+                        // Pulisce il nome da eventuali codici numerici lunghi alla fine
+                        foundName = foundName.replace(/\s+\d{8,}$/, '').trim();
+                        
+                        // Aggiunge il brand se esiste e non è già parte del nome
+                        if (product.brands && !foundName.toLowerCase().includes(product.brands.toLowerCase())) {
+                            productName = `${product.brands} - ${foundName}`;
+                        } else {
+                            productName = foundName;
+                        }
+                    }
                 }
             }
         } catch (error) { console.error("Errore Open Food Facts:", error); }
