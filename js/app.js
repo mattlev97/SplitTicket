@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
         result: document.getElementById('result-screen'),
         history: document.getElementById('history-screen'),
         archive: document.getElementById('archive-screen'),
+        productDetail: document.getElementById('product-detail-screen'),
         settings: document.getElementById('settings-screen'),
     };
 
@@ -66,6 +67,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Schermata Archivio
         archiveList: document.getElementById('archive-list'),
         addToArchiveBtn: document.getElementById('add-to-archive-btn'),
+
+        // Schermata Dettaglio Prodotto
+        productDetailContent: document.getElementById('product-detail-content'),
+        closeDetailBtn: document.getElementById('close-detail-btn'),
         
         // Schermata Impostazioni
         installPwaBtn: document.getElementById('install-pwa-btn'),
@@ -86,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         history: 'Split<span class="ticket-part">Ticket</span>',
         settings: 'Split<span class="ticket-part">Ticket</span>',
         archive: 'Split<span class="ticket-part">Ticket</span>',
+        productDetail: 'Dettaglio Prodotto',
         result: 'Risultati',
         scanner: 'Scanner'
     };
@@ -142,6 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.addToArchiveBtn.addEventListener('click', startScannerForArchive);
         elements.closeScannerBtn.addEventListener('click', stopScanner);
         elements.closeResultBtn.addEventListener('click', () => navigateTo('home'));
+        elements.closeDetailBtn.addEventListener('click', () => navigateTo('archive'));
         elements.saveHistoryBtn.addEventListener('click', saveResultToHistory);
         elements.clearHistoryBtn.addEventListener('click', clearHistory);
         elements.exportCsvBtn.addEventListener('click', exportHistoryAsCSV);
@@ -165,6 +172,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (screens[screenName]) screens[screenName].classList.add('active');
         elements.headerTitle.innerHTML = screenTitles[screenName] || 'SplitTicket';
         elements.headerSubtitle.style.display = ['home', 'history', 'settings', 'archive'].includes(screenName) ? 'block' : 'none';
+        
+        // Nasconde la bottom nav per le schermate di dettaglio/modali
+        const mainContentScreens = ['home', 'history', 'archive', 'settings'];
+        document.getElementById('bottom-nav').style.display = mainContentScreens.includes(screenName) ? 'flex' : 'none';
+
         elements.bottomNavButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.screen === screenName));
         if (screenName === 'history') loadHistory();
         if (screenName === 'archive') loadArchive();
@@ -383,7 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadArchive() {
         try {
             const products = await db.getProducts();
-            ui.renderArchive(products, elements.archiveList, deleteFromArchive);
+            ui.renderArchive(products, elements.archiveList, showProductDetail, deleteFromArchive);
         } catch (error) { console.error('Errore caricamento archivio:', error); }
     }
 
@@ -396,6 +408,30 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 showError('Errore durante la rimozione.');
             }
+        }
+    }
+
+    async function showProductDetail(barcode) {
+        const toastId = showLoading('Caricamento dettagli...');
+        try {
+            const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+            if (!response.ok) throw new Error('Risposta di rete non valida');
+            
+            const data = await response.json();
+            dismissToast(toastId);
+
+            if (data.status !== 1 || !data.product) {
+                showError('Dettagli prodotto non trovati.');
+                return;
+            }
+            
+            ui.renderProductDetail(data.product, elements.productDetailContent);
+            navigateTo('productDetail');
+
+        } catch (error) {
+            dismissToast(toastId);
+            showError('Errore di rete nel recupero dei dettagli.');
+            console.error(error);
         }
     }
 

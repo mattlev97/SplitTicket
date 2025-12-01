@@ -136,9 +136,10 @@ const ui = {
      * Renderizza i prodotti nell'archivio.
      * @param {Array} products - L'array dei prodotti archiviati.
      * @param {HTMLElement} container - L'elemento contenitore.
+     * @param {Function} onSelect - Callback da eseguire alla selezione di un prodotto.
      * @param {Function} onRemove - Callback da eseguire alla rimozione di un prodotto.
      */
-    renderArchive(products, container, onRemove) {
+    renderArchive(products, container, onSelect, onRemove) {
         container.innerHTML = '';
         if (products.length === 0) {
             container.innerHTML = '<p>Nessun prodotto in archivio. Usa il tasto + per aggiungerne.</p>';
@@ -155,9 +156,49 @@ const ui = {
                 </div>
                 <button data-barcode="${product.barcode}" class="remove-item-btn">🗑️</button>
             `;
-            cardEl.querySelector('.remove-item-btn').addEventListener('click', () => onRemove(product.barcode));
+            cardEl.querySelector('.remove-item-btn').addEventListener('click', (e) => {
+                e.stopPropagation(); // Evita che il click si propaghi alla card
+                onRemove(product.barcode);
+            });
+            cardEl.addEventListener('click', () => onSelect(product.barcode));
             container.appendChild(cardEl);
         });
+    },
+
+    /**
+     * Renderizza i dettagli di un prodotto.
+     * @param {Object} product - L'oggetto prodotto da Open Food Facts.
+     * @param {HTMLElement} container - L'elemento contenitore.
+     */
+    renderProductDetail(product, container) {
+        container.innerHTML = '';
+        if (!product) {
+            container.innerHTML = '<p>Dettagli del prodotto non disponibili.</p>';
+            return;
+        }
+
+        const name = product.product_name_it || product.product_name || 'Nome non disponibile';
+        const brands = product.brands || 'Marca non disponibile';
+        const imageUrl = product.image_front_url || 'icons/icon-192x192.png';
+        const ingredients = product.ingredients_text_it || product.ingredients_text || 'Non specificati';
+        const quantity = product.quantity || 'Non specificata';
+
+        const detailHTML = `
+            <div class="product-detail-header">
+                <img src="${imageUrl}" alt="${name}">
+                <h2>${name}</h2>
+                <p>${brands}</p>
+            </div>
+            <div class="product-detail-section">
+                <h3>Quantità</h3>
+                <p>${quantity}</p>
+            </div>
+            <div class="product-detail-section">
+                <h3>Ingredienti</h3>
+                <p>${ingredients}</p>
+            </div>
+        `;
+        container.innerHTML = detailHTML;
     }
 };
 
