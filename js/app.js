@@ -248,7 +248,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 name: "Live",
                 type: "LiveStream",
                 target: elements.scannerContainer,
-                constraints: { width: 480, height: 320, facingMode: "environment" },
+                constraints: { width: 640, height: 480, facingMode: "environment" },
+                area: { // Limita la scansione all'area centrale
+                    top: "30%",
+                    right: "10%",
+                    left: "10%",
+                    bottom: "30%"
+                }
             },
             decoder: { readers: ["ean_reader"] },
         }, (err) => {
