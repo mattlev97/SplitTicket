@@ -427,3 +427,12 @@ button {
     flex-shrink: 0;
     background-color: var(--secondary-color);
 }
+
+#settings-screen .settings-footer button,
+#settings-screen .add-category-form button,
+#settings-screen #install-pwa-btn {
+    background-color: var(--brand-color);
+    color: white;
+    font-weight: bold;
+    border: none;
+}
