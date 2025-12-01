@@ -5,7 +5,7 @@ const CONFIG_KEY = 'splitTicketConfig';
 
 // Valori di default usati al primo avvio o se non ci sono impostazioni salvate.
 const defaultConfig = {
-    APP_VERSION: '1.0.9',
+    APP_VERSION: '1.1.0',
     VOUCHER_VALUE_USER: 7.50,
     VOUCHER_VALUE_PARTNER: 7.00,
     VOUCHER_COUNT_USER: 6,
