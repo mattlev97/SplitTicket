@@ -271,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
         stopScanner();
         alert('Ricerca prodotto in corso...');
         
-        let productNameForPrompt = ''; // Inizia con una stringa vuota
+        let productNameForPrompt = '';
 
         try {
             const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
@@ -293,9 +293,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error("Errore durante la ricerca su Open Food Facts:", error);
+            alert("Errore di rete. Impossibile contattare il database dei prodotti. Controlla la tua connessione e riprova.");
+            return; // Interrompe l'esecuzione per evitare di chiedere l'input all'utente
         }
 
-        // Se dopo la ricerca il nome è ancora vuoto, avvisa l'utente.
         if (productNameForPrompt === '') {
             alert(`Prodotto con codice ${barcode} non trovato nel database. Inseriscilo manualmente.`);
         }
@@ -306,7 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const price = parseFloat(priceStr);
             if (!isNaN(price) && price > 0) {
                 addItemToCart({ name, price, quantity: 1, category: 'Generico', isNonVoucher: false, barcode });
-            } else if (priceStr !== null) { // Non mostrare l'alert se l'utente preme "Annulla"
+            } else if (priceStr !== null) {
                 alert('Prezzo non valido.');
             }
         }
