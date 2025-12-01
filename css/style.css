@@ -283,14 +283,13 @@ button {
 .footer-actions { display: flex; gap: 0.5rem; }
 #optimize-btn {
     flex-grow: 1;
-    background-color: var(--brand-color);
-    color: white;
-    border: none;
+    background-color: #f0f0f0;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
 }
 #scan-barcode-btn {
-    border: none;
-    background-color: var(--brand-color);
-    color: white;
+    border: 1px solid var(--border-color);
+    background-color: #fff;
     font-size: 1.5rem;
 }
 
