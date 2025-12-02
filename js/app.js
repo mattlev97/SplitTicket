@@ -446,7 +446,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchAndDisplaySimilarProducts(product) {
         const categories = product.categories_tags;
-        if (!categories || categories.length === 0) return;
+        if (!categories || categories.length === 0) {
+            ui.renderSimilarProducts([], elements.productDetailContent, showProductDetail);
+            return;
+        }
 
         const reversedCategories = [...categories].reverse();
         let similarProducts = [];
@@ -475,9 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        if (similarProducts.length > 0) {
-            ui.appendSimilarProducts(similarProducts, elements.productDetailContent, showProductDetail);
-        }
+        ui.renderSimilarProducts(similarProducts, elements.productDetailContent, showProductDetail);
     }
 
     function exportHistoryAs(format) {

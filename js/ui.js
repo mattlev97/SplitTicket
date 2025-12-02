@@ -166,7 +166,7 @@ const ui = {
     },
 
     /**
-     * Renderizza i dettagli di un prodotto.
+     * Renderizza i dettagli di un prodotto, includendo un placeholder per i prodotti simili.
      * @param {Object|null} product - L'oggetto prodotto da Open Food Facts. Se null, pulisce la vista.
      * @param {HTMLElement} container - L'elemento contenitore.
      */
@@ -284,28 +284,35 @@ const ui = {
                 <p><strong>Packaging:</strong> ${getPackaging(product)}</p>
                 <p><strong>Luogo di produzione:</strong> ${getManufacturingPlaces(product)}</p>
             </div>
+            <div class="product-detail-section" id="similar-products-section">
+                <h3>Prodotti Simili</h3>
+                <div id="similar-products-content" class="similar-products-container">
+                    <p>Ricerca in corso...</p>
+                </div>
+            </div>
         `;
         container.innerHTML = detailHTML;
     },
 
     /**
-     * Aggiunge la sezione dei prodotti simili a una vista di dettaglio già renderizzata.
+     * Renderizza i prodotti simili, sostituendo il placeholder di caricamento.
      * @param {Array} similarProducts - Array di prodotti simili.
      * @param {HTMLElement} container - L'elemento contenitore del dettaglio prodotto.
      * @param {Function} onSimilarProductClick - Callback per il click su un prodotto simile.
      */
-    appendSimilarProducts(similarProducts, container, onSimilarProductClick) {
-        if (!similarProducts || similarProducts.length === 0) return;
+    renderSimilarProducts(similarProducts, container, onSimilarProductClick) {
+        const similarSection = container.querySelector('#similar-products-section');
+        const similarContent = container.querySelector('#similar-products-content');
 
-        const similarSectionHTML = `
-            <div class="product-detail-section">
-                <h3>Prodotti Simili</h3>
-                <div id="similar-products-container" class="similar-products-container"></div>
-            </div>
-        `;
-        container.insertAdjacentHTML('beforeend', similarSectionHTML);
+        if (!similarSection || !similarContent) return;
+
+        if (!similarProducts || similarProducts.length === 0) {
+            similarSection.style.display = 'none'; // Nasconde l'intera sezione se non ci sono prodotti
+            return;
+        }
+
+        similarContent.innerHTML = ''; // Svuota il contenuto (rimuove "Ricerca in corso...")
         
-        const similarContainer = container.querySelector('#similar-products-container');
         similarProducts.forEach(p => {
             const card = document.createElement('div');
             card.className = 'similar-product-card';
@@ -317,7 +324,7 @@ const ui = {
                 </div>
             `;
             card.addEventListener('click', () => onSimilarProductClick(p.code));
-            similarContainer.appendChild(card);
+            similarContent.appendChild(card);
         });
     }
 };
