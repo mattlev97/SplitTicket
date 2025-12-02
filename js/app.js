@@ -412,22 +412,51 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function showProductDetail(barcode) {
+        // Pulisce la vista precedente e naviga subito per dare un feedback immediato
+        ui.renderProductDetail(null, elements.productDetailContent);
+        navigateTo('productDetail');
         const toastId = showLoading('Caricamento dettagli...');
+    
         try {
-            const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
-            if (!response.ok) throw new Error('Risposta di rete non valida');
+            // Carica il prodotto principale
+            const productResponse = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+            if (!productResponse.ok) throw new Error('Risposta di rete non valida per il prodotto principale');
             
-            const data = await response.json();
-            dismissToast(toastId);
-
-            if (data.status !== 1 || !data.product) {
+            const productData = await productResponse.json();
+    
+            if (productData.status !== 1 || !productData.product) {
+                dismissToast(toastId);
                 showError('Dettagli prodotto non trovati.');
                 return;
             }
             
-            ui.renderProductDetail(data.product, elements.productDetailContent);
-            navigateTo('productDetail');
-
+            const product = productData.product;
+            let similarProducts = [];
+    
+            // Cerca la categoria più specifica per trovare prodotti simili
+            const categories = product.categories_tags;
+            if (categories && categories.length > 0) {
+                const mostSpecificCategory = categories[categories.length - 1];
+                
+                // Carica i prodotti simili
+                const searchUrl = `https://world.openfoodfacts.org/api/v2/search?categories_tags_contains=${mostSpecificCategory}&page_size=6&json=true&fields=product_name_it,product_name,brands,image_front_url,code`;
+                const similarResponse = await fetch(searchUrl);
+                
+                if (similarResponse.ok) {
+                    const similarData = await similarResponse.json();
+                    if (similarData.products) {
+                        // Filtra il prodotto corrente e prendi i primi 5 risultati
+                        similarProducts = similarData.products
+                            .filter(p => p.code !== barcode)
+                            .slice(0, 5);
+                    }
+                }
+            }
+            
+            dismissToast(toastId);
+            // Mostra tutto: dettagli del prodotto principale e i prodotti simili trovati
+            ui.renderProductDetail(product, elements.productDetailContent, similarProducts, showProductDetail);
+    
         } catch (error) {
             dismissToast(toastId);
             showError('Errore di rete nel recupero dei dettagli.');

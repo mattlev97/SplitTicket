@@ -166,14 +166,16 @@ const ui = {
     },
 
     /**
-     * Renderizza i dettagli di un prodotto.
-     * @param {Object} product - L'oggetto prodotto da Open Food Facts.
+     * Renderizza i dettagli di un prodotto e i prodotti simili.
+     * @param {Object|null} product - L'oggetto prodotto da Open Food Facts. Se null, pulisce la vista.
      * @param {HTMLElement} container - L'elemento contenitore.
+     * @param {Array} similarProducts - Array di prodotti simili.
+     * @param {Function} onSimilarProductClick - Callback per il click su un prodotto simile.
      */
-    renderProductDetail(product, container) {
-        container.innerHTML = '';
+    renderProductDetail(product, container, similarProducts = [], onSimilarProductClick) {
+        container.innerHTML = ''; // Pulisce sempre prima di iniziare
         if (!product) {
-            container.innerHTML = '<p>Dettagli del prodotto non disponibili.</p>';
+            // Mostra uno stato di caricamento o semplicemente lascia vuoto
             return;
         }
 
@@ -238,7 +240,6 @@ const ui = {
                 <h2>${getName(product)}</h2>
                 <p>${getBrands(product)} - ${getQuantity(product)}</p>
             </div>
-
             <div class="product-detail-section scores-section">
                 <h3>Punteggi</h3>
                 <div class="scores-container">
@@ -247,29 +248,24 @@ const ui = {
                     ${renderScore('NOVA', product.nova_group)}
                 </div>
             </div>
-
             <div class="product-detail-section">
                 <h3>Ingredienti</h3>
                 <p>${getIngredients(product)}</p>
             </div>
-
             <div class="product-detail-section">
                 <h3>Allergeni e Tracce</h3>
                 <p><strong>Allergeni dichiarati:</strong> ${getAllergens(product)}</p>
                 <p><strong>Può contenere tracce di:</strong> ${getTraces(product)}</p>
             </div>
-
             <div class="product-detail-section">
                 <h3>Additivi</h3>
                 <p>${getAdditives(product)}</p>
             </div>
-
             <div class="product-detail-section">
                 <h3>Certificazioni e Stile di Vita</h3>
                 <p><strong>Certificazioni:</strong> ${getLabels(product)}</p>
                 <p><strong>Stile di vita:</strong> ${getLifestyle(product)}</p>
             </div>
-
             <div class="product-detail-section">
                 <h3>Valori Nutrizionali (per 100g)</h3>
                 <table class="nutrition-table">
@@ -285,7 +281,6 @@ const ui = {
                     </tbody>
                 </table>
             </div>
-
             <div class="product-detail-section">
                 <h3>Altre Informazioni</h3>
                 <p><strong>Categorie:</strong> ${getCategories(product)}</p>
@@ -294,6 +289,32 @@ const ui = {
             </div>
         `;
         container.innerHTML = detailHTML;
+
+        // Aggiunge la sezione dei prodotti simili se ce ne sono
+        if (similarProducts && similarProducts.length > 0) {
+            const similarSectionHTML = `
+                <div class="product-detail-section">
+                    <h3>Prodotti Simili</h3>
+                    <div id="similar-products-container" class="similar-products-container"></div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', similarSectionHTML);
+            const similarContainer = container.querySelector('#similar-products-container');
+            
+            similarProducts.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'similar-product-card';
+                card.innerHTML = `
+                    <img src="${p.image_front_url || 'icons/icon-192x192.png'}" alt="${p.product_name || ''}">
+                    <div class="similar-product-info">
+                        <strong>${p.product_name_it || p.product_name || 'Senza nome'}</strong>
+                        <p>${p.brands || 'Marca sconosciuta'}</p>
+                    </div>
+                `;
+                card.addEventListener('click', () => onSimilarProductClick(p.code));
+                similarContainer.appendChild(card);
+            });
+        }
     }
 };
 
