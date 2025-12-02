@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const elements = {
         // Navigazione Globale
         hamburgerBtn: document.getElementById('hamburger-btn'),
+        backBtn: document.getElementById('back-btn'),
         sideMenu: document.getElementById('side-menu'),
         sideMenuOverlay: document.getElementById('side-menu-overlay'),
         sideMenuLinks: document.querySelectorAll('.side-menu-link'),
@@ -70,7 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Schermata Dettaglio Prodotto
         productDetailContent: document.getElementById('product-detail-content'),
-        closeDetailBtn: document.getElementById('close-detail-btn'),
         
         // Schermata Impostazioni
         installPwaBtn: document.getElementById('install-pwa-btn'),
@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         history: 'Split<span class="ticket-part">Ticket</span>',
         settings: 'Split<span class="ticket-part">Ticket</span>',
         archive: 'Split<span class="ticket-part">Ticket</span>',
-        productDetail: 'Dettaglio Prodotto',
+        productDetail: 'Split<span class="ticket-part">Ticket</span>',
         result: 'Risultati',
         scanner: 'Scanner'
     };
@@ -132,6 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Gestione Eventi
     function addEventListeners() {
         elements.hamburgerBtn.addEventListener('click', toggleSideMenu);
+        elements.backBtn.addEventListener('click', () => navigateTo('archive'));
         elements.sideMenuOverlay.addEventListener('click', toggleSideMenu);
         elements.bottomNavButtons.forEach(btn => btn.addEventListener('click', () => navigateTo(btn.dataset.screen)));
         elements.sideMenuLinks.forEach(link => {
@@ -148,7 +149,6 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.addToArchiveBtn.addEventListener('click', startScannerForArchive);
         elements.closeScannerBtn.addEventListener('click', stopScanner);
         elements.closeResultBtn.addEventListener('click', () => navigateTo('home'));
-        elements.closeDetailBtn.addEventListener('click', () => navigateTo('archive'));
         elements.saveHistoryBtn.addEventListener('click', saveResultToHistory);
         elements.clearHistoryBtn.addEventListener('click', clearHistory);
         elements.exportCsvBtn.addEventListener('click', exportHistoryAsCSV);
@@ -171,8 +171,17 @@ document.addEventListener('DOMContentLoaded', () => {
         Object.values(screens).forEach(screen => screen.classList.remove('active'));
         if (screens[screenName]) screens[screenName].classList.add('active');
         elements.headerTitle.innerHTML = screenTitles[screenName] || 'SplitTicket';
-        elements.headerSubtitle.style.display = ['home', 'history', 'settings', 'archive'].includes(screenName) ? 'block' : 'none';
+        elements.headerSubtitle.style.display = ['home', 'history', 'settings', 'archive', 'productDetail'].includes(screenName) ? 'block' : 'none';
         
+        // Gestione visibilità bottoni header
+        if (screenName === 'productDetail') {
+            elements.hamburgerBtn.style.display = 'none';
+            elements.backBtn.style.display = 'block';
+        } else {
+            elements.hamburgerBtn.style.display = 'block';
+            elements.backBtn.style.display = 'none';
+        }
+
         // Nasconde la bottom nav per le schermate di dettaglio/modali
         const mainContentScreens = ['home', 'history', 'archive', 'settings'];
         document.getElementById('bottom-nav').style.display = mainContentScreens.includes(screenName) ? 'flex' : 'none';
