@@ -188,6 +188,30 @@ const ui = {
         const getPackaging = (p) => p.packaging || 'Non specificato';
         const getManufacturingPlaces = (p) => p.manufacturing_places || p.origins || 'Non specificato';
 
+        // Helper per formattare array di tag in stringhe leggibili
+        const formatTags = (tags) => {
+            if (!tags || !Array.isArray(tags) || tags.length === 0) return 'Non specificato';
+            return tags
+                .map(tag => tag.replace(/^(en|it|fr):/, '').replace(/-/g, ' '))
+                .map(tag => tag.charAt(0).toUpperCase() + tag.slice(1))
+                .join(', ');
+        };
+
+        const getAdditives = (p) => formatTags(p.additives_tags);
+        const getTraces = (p) => formatTags(p.traces_tags);
+        const getLabels = (p) => formatTags(p.labels_tags);
+
+        const getLifestyle = (p) => {
+            const analysis = p.ingredients_analysis_tags || [];
+            const lifestyleInfo = [];
+            if (analysis.includes('en:vegan')) lifestyleInfo.push('Vegano');
+            if (analysis.includes('en:vegetarian')) lifestyleInfo.push('Vegetariano');
+            if (analysis.includes('en:palm-oil-free')) lifestyleInfo.push('Senza Olio di Palma');
+            
+            if (lifestyleInfo.length === 0) return 'Non specificato';
+            return lifestyleInfo.join(', ');
+        };
+
         // Helper per creare i badge dei punteggi
         const renderScore = (label, score) => {
             if (!score) return '';
@@ -230,8 +254,20 @@ const ui = {
             </div>
 
             <div class="product-detail-section">
-                <h3>Allergeni</h3>
-                <p>${getAllergens(product)}</p>
+                <h3>Allergeni e Tracce</h3>
+                <p><strong>Allergeni dichiarati:</strong> ${getAllergens(product)}</p>
+                <p><strong>Può contenere tracce di:</strong> ${getTraces(product)}</p>
+            </div>
+
+            <div class="product-detail-section">
+                <h3>Additivi</h3>
+                <p>${getAdditives(product)}</p>
+            </div>
+
+            <div class="product-detail-section">
+                <h3>Certificazioni e Stile di Vita</h3>
+                <p><strong>Certificazioni:</strong> ${getLabels(product)}</p>
+                <p><strong>Stile di vita:</strong> ${getLifestyle(product)}</p>
             </div>
 
             <div class="product-detail-section">
