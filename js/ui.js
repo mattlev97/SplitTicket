@@ -186,6 +186,7 @@ const ui = {
         const getAllergens = (p) => p.allergens_from_ingredients || 'Nessuno specificato';
         const getCategories = (p) => p.categories || 'Non specificate';
         const getPackaging = (p) => p.packaging || 'Non specificato';
+        const getManufacturingPlaces = (p) => p.manufacturing_places || p.origins || 'Non specificato';
 
         // Helper per creare i badge dei punteggi
         const renderScore = (label, score) => {
@@ -253,6 +254,7 @@ const ui = {
                 <h3>Altre Informazioni</h3>
                 <p><strong>Categorie:</strong> ${getCategories(product)}</p>
                 <p><strong>Packaging:</strong> ${getPackaging(product)}</p>
+                <p><strong>Luogo di produzione:</strong> ${getManufacturingPlaces(product)}</p>
             </div>
         `;
         container.innerHTML = detailHTML;
