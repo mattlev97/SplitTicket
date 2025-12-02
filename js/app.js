@@ -429,44 +429,54 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             const product = productData.product;
-            let similarProducts = [];
-    
-            const categories = product.categories_tags;
-            if (categories && categories.length > 0) {
-                const reversedCategories = [...categories].reverse();
-                
-                for (const category of reversedCategories) {
-                    const searchUrl = `https://world.openfoodfacts.org/api/v2/search?categories_tags_contains=${category}&page_size=6&json=true&fields=product_name_it,product_name,brands,image_front_url,code`;
-                    
-                    try {
-                        const similarResponse = await fetch(searchUrl);
-                        if (similarResponse.ok) {
-                            const similarData = await similarResponse.json();
-                            if (similarData.products && similarData.products.length > 1) {
-                                const foundProducts = similarData.products
-                                    .filter(p => p.code !== barcode)
-                                    .slice(0, 5);
-                                
-                                if (foundProducts.length > 0) {
-                                    similarProducts = foundProducts;
-                                    console.log(`Trovati prodotti simili nella categoria: ${category}`);
-                                    break; 
-                                }
-                            }
-                        }
-                    } catch (e) {
-                        console.warn(`Ricerca per categoria "${category}" fallita, provo la successiva.`, e);
-                    }
-                }
-            }
             
+            // Mostra subito i dettagli del prodotto principale
             dismissToast(toastId);
-            ui.renderProductDetail(product, elements.productDetailContent, similarProducts, showProductDetail);
+            ui.renderProductDetail(product, elements.productDetailContent);
+    
+            // Cerca e mostra i prodotti simili in background
+            fetchAndDisplaySimilarProducts(product);
     
         } catch (error) {
             dismissToast(toastId);
             showError('Errore di rete nel recupero dei dettagli.');
             console.error(error);
+        }
+    }
+
+    async function fetchAndDisplaySimilarProducts(product) {
+        const categories = product.categories_tags;
+        if (!categories || categories.length === 0) return;
+
+        const reversedCategories = [...categories].reverse();
+        let similarProducts = [];
+
+        for (const category of reversedCategories) {
+            const searchUrl = `https://world.openfoodfacts.org/api/v2/search?categories_tags_contains=${category}&page_size=6&json=true&fields=product_name_it,product_name,brands,image_front_url,code`;
+            
+            try {
+                const similarResponse = await fetch(searchUrl);
+                if (similarResponse.ok) {
+                    const similarData = await similarResponse.json();
+                    if (similarData.products && similarData.products.length > 1) {
+                        const foundProducts = similarData.products
+                            .filter(p => p.code !== product.code)
+                            .slice(0, 5);
+                        
+                        if (foundProducts.length > 0) {
+                            similarProducts = foundProducts;
+                            console.log(`Trovati prodotti simili nella categoria: ${category}`);
+                            break; 
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn(`Ricerca per categoria "${category}" fallita, provo la successiva.`, e);
+            }
+        }
+
+        if (similarProducts.length > 0) {
+            ui.appendSimilarProducts(similarProducts, elements.productDetailContent, showProductDetail);
         }
     }
 

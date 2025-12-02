@@ -166,16 +166,13 @@ const ui = {
     },
 
     /**
-     * Renderizza i dettagli di un prodotto e i prodotti simili.
+     * Renderizza i dettagli di un prodotto.
      * @param {Object|null} product - L'oggetto prodotto da Open Food Facts. Se null, pulisce la vista.
      * @param {HTMLElement} container - L'elemento contenitore.
-     * @param {Array} similarProducts - Array di prodotti simili.
-     * @param {Function} onSimilarProductClick - Callback per il click su un prodotto simile.
      */
-    renderProductDetail(product, container, similarProducts = [], onSimilarProductClick) {
+    renderProductDetail(product, container) {
         container.innerHTML = ''; // Pulisce sempre prima di iniziare
         if (!product) {
-            // Mostra uno stato di caricamento o semplicemente lascia vuoto
             return;
         }
 
@@ -289,32 +286,39 @@ const ui = {
             </div>
         `;
         container.innerHTML = detailHTML;
+    },
 
-        // Aggiunge la sezione dei prodotti simili se ce ne sono
-        if (similarProducts && similarProducts.length > 0) {
-            const similarSectionHTML = `
-                <div class="product-detail-section">
-                    <h3>Prodotti Simili</h3>
-                    <div id="similar-products-container" class="similar-products-container"></div>
+    /**
+     * Aggiunge la sezione dei prodotti simili a una vista di dettaglio già renderizzata.
+     * @param {Array} similarProducts - Array di prodotti simili.
+     * @param {HTMLElement} container - L'elemento contenitore del dettaglio prodotto.
+     * @param {Function} onSimilarProductClick - Callback per il click su un prodotto simile.
+     */
+    appendSimilarProducts(similarProducts, container, onSimilarProductClick) {
+        if (!similarProducts || similarProducts.length === 0) return;
+
+        const similarSectionHTML = `
+            <div class="product-detail-section">
+                <h3>Prodotti Simili</h3>
+                <div id="similar-products-container" class="similar-products-container"></div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', similarSectionHTML);
+        
+        const similarContainer = container.querySelector('#similar-products-container');
+        similarProducts.forEach(p => {
+            const card = document.createElement('div');
+            card.className = 'similar-product-card';
+            card.innerHTML = `
+                <img src="${p.image_front_url || 'icons/icon-192x192.png'}" alt="${p.product_name || ''}">
+                <div class="similar-product-info">
+                    <strong>${p.product_name_it || p.product_name || 'Senza nome'}</strong>
+                    <p>${p.brands || 'Marca sconosciuta'}</p>
                 </div>
             `;
-            container.insertAdjacentHTML('beforeend', similarSectionHTML);
-            const similarContainer = container.querySelector('#similar-products-container');
-            
-            similarProducts.forEach(p => {
-                const card = document.createElement('div');
-                card.className = 'similar-product-card';
-                card.innerHTML = `
-                    <img src="${p.image_front_url || 'icons/icon-192x192.png'}" alt="${p.product_name || ''}">
-                    <div class="similar-product-info">
-                        <strong>${p.product_name_it || p.product_name || 'Senza nome'}</strong>
-                        <p>${p.brands || 'Marca sconosciuta'}</p>
-                    </div>
-                `;
-                card.addEventListener('click', () => onSimilarProductClick(p.code));
-                similarContainer.appendChild(card);
-            });
-        }
+            card.addEventListener('click', () => onSimilarProductClick(p.code));
+            similarContainer.appendChild(card);
+        });
     }
 };
 
